@@ -1,0 +1,81 @@
+# Dart & Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Android
+android/app/debug/
+android/app/profile/
+android/app/release/
+*.iml
+*.apk
+*.ap_*
+*.dex
+*.class
+*.jar
+*.keystore
+*.so
+*.swp
+*.lock
+
+# iOS
+ios/Flutter/AppFrameworkInfo.plist
+ios/Flutter/Debug.xcconfig
+ios/Flutter/Generated.xcconfig
+ios/Flutter/Release.xcconfig
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner.xcworkspace/
+ios/Pods/
+ios/Podfile.lock
+ios/Podfile
+ios/RunnerTests/
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj
+
+# macOS
+macos/Flutter/ephemeral/
+macos/RunnerTests/
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj
+
+# Linux
+linux/flutter/
+linux/build/
+
+# Windows
+windows/flutter/
+windows/build/
+
+# Web
+web/build/
+
+# VS Code
+.vscode/
+
+# Others
+.idea/
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# Coverage
+coverage/
+
+# Generated files
+*.generated.*
+
+# Node
+node_modules/
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Ignore environment files
+.env
+.env.*
