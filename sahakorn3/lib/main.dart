@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sahakorn3/src/widgets/navbar_shop.dart';
-import 'package:sahakorn3/src/widgets/navbar_customer.dart';
-import 'src/core/theme_provider.dart';
+import 'package:sahakorn3/src/widgets/shop_navbar.dart';
+import 'package:sahakorn3/src/widgets/customer_navbar.dart';
+import 'src/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 

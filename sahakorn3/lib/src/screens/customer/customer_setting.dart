@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sahakorn3/src/core/theme_provider.dart';
+import 'package:sahakorn3/src/providers/theme_provider.dart';
 
 class CustomerSetting extends StatefulWidget {
   const CustomerSetting({super.key});

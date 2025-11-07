@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "171679526295",
+    "project_id": "sahakorn-project-e8246",
+    "storage_bucket": "sahakorn-project-e8246.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:171679526295:android:df2e0b952f2bca31de28d2",
+        "android_client_info": {
+          "package_name": "com.example.sahakorn3"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNLdX1cBGsi-BcxUXMcEDV8QXh3DShKAA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

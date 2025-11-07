@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/shop/homepage.dart';
-import 'package:sahakorn3/src/screens/shop/creditpage.dart';
-import 'package:sahakorn3/src/screens/shop/qr_generate_page.dart';
-import 'package:sahakorn3/src/screens/shop/settingpage.dart';
-import 'package:sahakorn3/src/screens/shop/transactionpage.dart';
+import 'package:sahakorn3/src/screens/shop/shop_homepage.dart';
+import 'package:sahakorn3/src/screens/shop/shop_creditpage.dart';
+import 'package:sahakorn3/src/screens/shop/shop_qr_generate_page.dart';
+import 'package:sahakorn3/src/screens/shop/shop_settingpage.dart';
+import 'package:sahakorn3/src/screens/shop/shop_transactionpage.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
-import 'package:sahakorn3/src/widgets/navbar_customer.dart';
+import 'package:sahakorn3/src/widgets/customer_navbar.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

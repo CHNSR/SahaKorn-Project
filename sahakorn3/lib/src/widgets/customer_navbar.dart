@@ -8,7 +8,7 @@ import 'package:sahakorn3/src/screens/customer/customer_pay.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sahakorn3/src/widgets/navbar_shop.dart';
+import 'package:sahakorn3/src/widgets/shop_navbar.dart';
 
 class NavbarCustomer extends StatefulWidget {
   const NavbarCustomer({super.key});
