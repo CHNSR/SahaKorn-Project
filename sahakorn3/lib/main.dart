@@ -5,8 +5,16 @@ import 'package:sahakorn3/src/widgets/customer_navbar.dart';
 import 'src/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:sahakorn3/firebase_options.dart';
+import 'package:sahakorn3/src/screens/auth/login/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -63,10 +71,17 @@ class _RootState extends State<Root> {
   bool _loading = true;
   bool _seen = false;
   String? _role;
+  User? _firebaseUser;
 
   @override
   void initState() {
     super.initState();
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      setState(() {
+        _firebaseUser = user;
+        _checkSeen(); // Re-check seen status and role when auth state changes
+      });
+    });
     _checkSeen();
   }
 
@@ -84,6 +99,11 @@ class _RootState extends State<Root> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+    // If Firebase user is null, navigate to LoginScreen
+    if (_firebaseUser == null) return const LoginScreen();
+
+    // If user is logged in via Firebase, proceed with existing logic
     if (!_seen) return const IntermediaryScreen();
     if (_role == 'customer') return const NavbarCustomer();
     // default to shop for any other/unknown role

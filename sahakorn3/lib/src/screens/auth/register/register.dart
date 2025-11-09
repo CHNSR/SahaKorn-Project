@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sahakorn3/src/widgets/customer_navbar.dart';
+import 'package:sahakorn3/src/screens/auth/login/login.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/services/auth/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,6 +15,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passCtrl = TextEditingController();
   final TextEditingController _confirmPassCtrl = TextEditingController();
+  final TextEditingController _nameCtrl = TextEditingController();
+  final TextEditingController _surnameCtrl = TextEditingController();
+  final TextEditingController _phonenumCtrl = TextEditingController();
   bool _hidePassword = true;
   bool _hideConfirmPassword = true;
   bool _loading = false;
@@ -23,34 +27,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailCtrl.dispose();
     _passCtrl.dispose();
     _confirmPassCtrl.dispose();
+    _nameCtrl.dispose();
+    _surnameCtrl.dispose();
+    _phonenumCtrl.dispose();
     super.dispose();
   }
+
+  final RegisterService _authService = RegisterService();
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
 
-    // Simulate registration delay
-    await Future.delayed(const Duration(milliseconds: 700));
+    try {
+      await _authService.registerWithEmailAndPassword(
+        _emailCtrl.text.trim(),
+        _passCtrl.text.trim(),
+        _nameCtrl.text.trim(),
+        _surnameCtrl.text.trim(),
+        _phonenumCtrl.text.trim(),
+      );
 
-    // For now, just navigate to customer navbar after successful "registration"
-    // In a real app, you would handle actual registration and then login.
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', 'demo_token');
-    await prefs.setString('user_role', 'customer');
-    await prefs.setBool('seen_intermediary', true);
+      if (!mounted) return;
 
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const NavbarCustomer()));
+      // แสดง SnackBar สีเขียวเมื่อสมัครสำเร็จ
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registration successful! Please sign in.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // นำทางไปยังหน้า Login
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'weak-password') {
+        message = 'The password provided is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'The account already exists for that email.';
+      } else {
+        message = e.message ?? 'An unknown error occurred.';
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message,style: TextStyle(color: Colors.black,fontFamily: 'Roboto',fontSize: 16)),
+          backgroundColor: const Color.fromARGB(255, 121, 146, 255),
+        ),
+        
+      );
+
+      
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An unexpected error occurred: ${e.toString()}')),
+      );
+    } finally {
+      setState(() => _loading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFb8c1ec),
       appBar: AppBar(
-        title: const Text('Sign up'),
-        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('Sign up',style: TextStyle(color: Colors.white,fontFamily: 'Roboto',fontSize: 20)),
+        backgroundColor: const Color(0xFF232946),
         elevation: 2,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(
@@ -59,7 +106,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                surfaceTintColor: Color(0xFFfffffe),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Color(0xFF121629), width: 2),
+                ),
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -84,6 +135,46 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) return 'Enter email';
                             if (!v.contains('@')) return 'Enter a valid email';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _nameCtrl,
+                          keyboardType: TextInputType.text,
+                          decoration: const InputDecoration(
+                            labelText: 'Name',
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter name';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _surnameCtrl,
+                          keyboardType: TextInputType.text,
+                          decoration: const InputDecoration(
+                            labelText: 'Surname',
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter surname';
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _phonenumCtrl,
+                          keyboardType: TextInputType.phone,
+                          decoration: const InputDecoration(
+                            labelText: 'Phone Number',
+                            prefixIcon: Icon(Icons.phone),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter phone number';
+                            if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(v)) return 'Enter a valid phone number';
                             return null;
                           },
                         ),
@@ -128,9 +219,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           height: 48,
                           child: ElevatedButton(
                             onPressed: _loading ? null : _submit,
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFabd1c6),
+                              side: BorderSide(color: Color(0xFF121629), width: 2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
                             child: _loading
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Color(0xFFF9bc60), strokeWidth: 2))
                                 : const Text('Sign up'),
                           ),
                         ),
@@ -140,7 +235,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           children: [
                             const Text('Already have an account?'),
                             TextButton(onPressed: () {
-                              // TODO: Navigate to login screen
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              )); 
                             }, child: const Text('Sign in')),
                           ],
                         ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/screens/auth/register/register.dart';
+import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sahakorn3/src/widgets/customer_navbar.dart';
 
@@ -45,10 +47,31 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign in'),
-        backgroundColor: const Color(0xFF1E293B),
-        elevation: 2,
+      backgroundColor: const Color(0xFFFb8c1ec),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60.0),
+        child: AppBar(
+          title: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text('Sign in',style: TextStyle(color: Colors.white,fontFamily: 'Roboto',fontSize: 20,fontWeight: FontWeight.bold)),
+              const SizedBox(width: 10),
+              IconButton(
+                icon: Icon(Icons.info_outline, color: Colors.white),
+                onPressed: () {
+                  // Allow developer to open intermediary screen manually
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const IntermediaryScreen()));
+                },
+                ),
+              
+            ],
+          ),
+          backgroundColor: const Color(0xFF232946),
+          elevation: 2,
+          automaticallyImplyLeading: false,
+        
+          
+        ),
       ),
       body: SafeArea(
         child: Center(
@@ -57,7 +80,11 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                surfaceTintColor: Color(0xFFfffffe),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Color(0xFF121629), width: 2)
+                ),
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -114,10 +141,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           height: 48,
                           child: ElevatedButton(
                             onPressed: _loading ? null : _submit,
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF232946),
+                              side: BorderSide(color: Color(0xFF004643), width: 2),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), 
+                            ),
                             child: _loading
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : const Text('Sign in'),
+                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Color(0xFFd4d8f0), strokeWidth: 2))
+                                : const Text('Sign in',style: TextStyle(color: Color(0xFFd4d8f0),fontFamily: 'Roboto',fontSize: 16),),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -125,7 +156,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text('Don\'t have an account?'),
-                            TextButton(onPressed: () {}, child: const Text('Create')),
+                            TextButton(onPressed: () {
+                              Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => const RegisterScreen(),
+                              ));
+                            }, child: const Text('Create')),
                           ],
                         ),
                       ],
