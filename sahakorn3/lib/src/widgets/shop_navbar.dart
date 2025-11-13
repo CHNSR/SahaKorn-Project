@@ -1,14 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/shop/shop_homepage.dart';
+import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:sahakorn3/src/screens/shop/shop_creditpage.dart';
+import 'package:sahakorn3/src/screens/shop/shop_homepage.dart';
 import 'package:sahakorn3/src/screens/shop/shop_qr_generate_page.dart';
 import 'package:sahakorn3/src/screens/shop/shop_settingpage.dart';
 import 'package:sahakorn3/src/screens/shop/shop_transactionpage.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
-import 'package:sahakorn3/src/widgets/customer_navbar.dart';
-import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sahakorn3/main.dart'; // 1. เพิ่ม Import นี้
+import 'package:sahakorn3/src/widgets/customer_navbar.dart'; // Import customer navbar
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 class NavbarShop extends StatefulWidget {
   const NavbarShop({super.key});
@@ -18,9 +19,23 @@ class NavbarShop extends StatefulWidget {
 }
 
 class _NavbarShopState extends State<NavbarShop> {
-  int selected = 0;
+  int _selectedIndex = 0;
   bool creadit = false;
   final controller = PageController();
+
+  // 2. ตรวจสอบให้แน่ใจว่า List นี้เรียกใช้หน้าจอของ Shop ทั้งหมด
+  static const List<Widget> _pages = <Widget>[
+    ShopHomepage(),
+    ShopTransaction(),
+    ShopCredit(),
+    ShopSettingpage(), // <--- แก้ไขจาก CustomerSetting เป็น Settingpage
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   void dispose() {
@@ -63,39 +78,27 @@ class _NavbarShopState extends State<NavbarShop> {
           backgroundColor: const Color(0xFF1E293B),
           elevation: 4,
           actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              // Handle notifications
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.change_circle_outlined, color: Colors.white),
-            onPressed: () async {
-              // Toggle stored user role and navigate with animation to avoid stacking roots.
-              final prefs = await SharedPreferences.getInstance();
-              final role = prefs.getString('user_role');
-              Widget target;
-              if (role == 'customer') {
-                await prefs.setString('user_role', 'shop');
-                target = const NavbarShop();
-              } else {
+            IconButton(
+              icon: const Icon(Icons.notifications, color: Colors.white),
+              onPressed: () {
+                // Handle notifications
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.change_circle_outlined, color: Colors.white),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                // 2. แค่สลับ Role ใน SharedPreferences
                 await prefs.setString('user_role', 'customer');
-                target = const NavbarCustomer();
-              }
 
-              Navigator.of(context).pushReplacement(PageRouteBuilder(
-                transitionDuration: const Duration(milliseconds: 380),
-                pageBuilder: (context, animation, secondaryAnimation) => target,
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  final fade = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
-                  final slide = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(fade);
-                  return FadeTransition(opacity: animation, child: SlideTransition(position: slide, child: child));
-                },
-              ));
-            },
-          ),
-            ],
+                // 3. สั่งให้แอปเริ่มต้นใหม่จาก Root widget
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const Root()),
+                  (route) => false,
+                );
+              },
+            ),
+          ],
         ),
       ),
       
@@ -141,13 +144,13 @@ class _NavbarShopState extends State<NavbarShop> {
         ],
         hasNotch: true,
         fabLocation: StylishBarFabLocation.center,
-        currentIndex: selected,
+        currentIndex: _selectedIndex,
         notchStyle: NotchStyle.square,
         onTap: (index) {
-          if (index == selected) return;
+          if (index == _selectedIndex) return;
           controller.jumpToPage(index);
           setState(() {
-            selected = index;
+            _selectedIndex = index;
           });
         },
       ),
@@ -156,7 +159,7 @@ class _NavbarShopState extends State<NavbarShop> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const QRGeneratePage()),
+            MaterialPageRoute(builder: (context) => const ShopQrGeneratePage()),
           );
           setState(() {
             creadit = !creadit;
@@ -174,10 +177,10 @@ class _NavbarShopState extends State<NavbarShop> {
         child: PageView(
           controller: controller,
           children: const [
-            Homepage(),
-            Transactionpage(),
-            CreditPage(),
-            Settingpage(),
+            ShopHomepage(),
+            ShopTransaction(),
+            ShopCredit(),
+            ShopSettingpage(),
           ],
         ),
       ),

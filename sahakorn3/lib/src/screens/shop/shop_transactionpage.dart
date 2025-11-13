@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class Transactionpage extends StatefulWidget {
-  const Transactionpage({super.key});
+class ShopTransaction extends StatefulWidget {
+  const ShopTransaction({super.key});
 
   @override
-  State<Transactionpage> createState() => _TransactionpageState();
+  State<ShopTransaction> createState() => _ShopTransactionState();
 }
 
-class _TransactionpageState extends State<Transactionpage> {
+class _ShopTransactionState extends State<ShopTransaction> {
   final TextEditingController _searchController = TextEditingController();
   String _filter = 'All';
 

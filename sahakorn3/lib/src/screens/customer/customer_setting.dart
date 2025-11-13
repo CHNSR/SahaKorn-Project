@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/widgets/logout_list_title.dart';
+
 
 class CustomerSetting extends StatefulWidget {
   const CustomerSetting({super.key});
@@ -99,11 +102,8 @@ class _CustomerSettingState extends State<CustomerSetting> {
                     title: const Text('Help & Support'),
                     onTap: () {},
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text('Sign out', style: TextStyle(color: Colors.red)),
-                    onTap: _confirmSignOut,
-                  ),
+                  const Divider(),
+                  const LogoutListTile(), // 2. เรียกใช้งาน Widget ที่นี่
                 ],
               ),
               const SizedBox(height: 24),
@@ -119,6 +119,9 @@ class _CustomerSettingState extends State<CustomerSetting> {
   }
 
   Widget _buildAccountHeader() {
+    // Get the current user from FirebaseAuth
+    final user = FirebaseAuth.instance.currentUser;
+
     return Row(
       children: [
         CircleAvatar(radius: 36, backgroundColor: Colors.green[100], child: const Icon(Icons.person, size: 34, color: Colors.green)),
@@ -126,10 +129,11 @@ class _CustomerSettingState extends State<CustomerSetting> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('บัญชีของฉัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 4),
-              Text('user@example.com', style: TextStyle(color: Colors.black54)),
+            children: [
+              const Text('บัญชีของฉัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              // Display the user's actual email
+              Text(user?.email ?? 'No email found', style: const TextStyle(color: Colors.black54)),
             ],
           ),
         ),
@@ -157,24 +161,5 @@ class _CustomerSettingState extends State<CustomerSetting> {
         ],
       ),
     );
-  }
-
-  void _confirmSignOut() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out', style: TextStyle(color: Colors.red))),
-        ],
-      ),
-    );
-
-    if (ok == true) {
-      // TODO: perform sign out logic
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signed out')));
-    }
   }
 }

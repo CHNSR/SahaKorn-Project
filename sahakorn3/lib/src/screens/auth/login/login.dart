@@ -3,6 +3,8 @@ import 'package:sahakorn3/src/screens/auth/register/register.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sahakorn3/src/widgets/customer_navbar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,18 +32,53 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
 
-    // Simulate authentication delay
-    await Future.delayed(const Duration(milliseconds: 700));
+    try {
+      // 1. Sign in with Firebase Auth
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailCtrl.text.trim(),
+        password: _passCtrl.text.trim(),
+      );
 
-    // Save a demo auth token and set role to 'customer' for now.
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', 'demo_token');
-    await prefs.setString('user_role', 'customer');
-    await prefs.setBool('seen_intermediary', true);
+      if (credential.user != null) {
+        // 2. Get user role from Firestore
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(credential.user!.uid).get();
+        final role = userDoc.data()?['user_level'] ?? 'customer'; // Default to 'customer' if not found
 
-    // Navigate to customer navbar as a replacement
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const NavbarCustomer()));
+        // 3. Save session data
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', credential.user!.uid);
+        await prefs.setString('user_role', role);
+        await prefs.setBool('seen_intermediary', true);
+
+        // 4. Navigate to customer navbar as a replacement
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const NavbarCustomer()));
+      }
+    } on FirebaseAuthException catch (e) {
+      String message;
+      if (e.code == 'user-not-found') {
+        message = 'No user found for that email.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Wrong password provided for that user.';
+      } else {
+        message = e.message ?? 'An unknown error occurred.';
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      print("Login error: $message");
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An unexpected error occurred: ${e.toString()}')),
+      );
+      print("Login error: ${e.toString()}");
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   @override

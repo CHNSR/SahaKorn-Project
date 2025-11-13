@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/screens/customer/customer_home.dart';
-import 'package:sahakorn3/src/screens/customer/customer_transaction.dart';
+import 'package:sahakorn3/src/screens/customer/customer_shop.dart';
 import 'package:sahakorn3/src/screens/customer/customer_credit.dart';
 import 'package:sahakorn3/src/screens/customer/customer_setting.dart';
 import 'package:sahakorn3/src/screens/customer/customer_pay.dart';
@@ -9,6 +9,7 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sahakorn3/src/widgets/shop_navbar.dart';
+import 'package:sahakorn3/main.dart'; // 1. เพิ่ม Import นี้
 
 class NavbarCustomer extends StatefulWidget {
   const NavbarCustomer({super.key});
@@ -72,27 +73,16 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
         IconButton(
           icon: const Icon(Icons.change_circle_outlined, color: Colors.white),
           onPressed: () async {
-            // Toggle stored user role and navigate with an animated replacement.
             final prefs = await SharedPreferences.getInstance();
-            final role = prefs.getString('user_role');
-            Widget target;
-            if (role == 'customer') {
-              await prefs.setString('user_role', 'shop');
-              target = const NavbarShop();
-            } else {
-              await prefs.setString('user_role', 'customer');
-              target = const NavbarCustomer();
-            }
+            // 2. แค่สลับ Role ใน SharedPreferences
+            await prefs.setString('user_role', 'shop');
 
-            Navigator.of(context).pushReplacement(PageRouteBuilder(
-              transitionDuration: const Duration(milliseconds: 380),
-              pageBuilder: (context, animation, secondaryAnimation) => target,
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                final fade = CurvedAnimation(parent: animation, curve: Curves.easeInOut);
-                final slide = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero).animate(fade);
-                return FadeTransition(opacity: animation, child: SlideTransition(position: slide, child: child));
-              },
-            ));
+            // 3. สั่งให้แอปเริ่มต้นใหม่จาก Root widget
+            // นี่จะทำให้ StreamBuilder ใน main.dart ทำงานอีกครั้งและสร้าง NavbarShop ที่ถูกต้อง
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const Root()),
+              (route) => false,
+            );
           },
         ),
           ],
@@ -116,11 +106,11 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
             showBadge: false,
           ),
           BottomBarItem(
-            icon: const Icon(Icons.swap_horiz),
-            selectedIcon: const Icon(Icons.swap_horiz),
+            icon: const Icon(Icons.shop_2_outlined),
+            selectedIcon: const Icon(Icons.shop_2),
             selectedColor: Color(0xFFCCFF00),
             unSelectedColor: Colors.white,
-            title: const Text('Transactions', style: TextStyle(color: Colors.white)),
+            title: const Text('Shop', style: TextStyle(color: Colors.white)),
           ),
           BottomBarItem(
             icon: const Icon(Icons.credit_card_outlined),
@@ -173,7 +163,7 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
           controller: controller,
           children: const [
             CustomerHome(),
-            CustomerTransaction(),
+            CustomerShop(),
             CustomerCredit(),
             CustomerSetting(),
           ],

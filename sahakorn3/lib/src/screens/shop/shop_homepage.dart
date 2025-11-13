@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 
-class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+class ShopHomepage extends StatefulWidget {
+  const ShopHomepage({super.key});
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<ShopHomepage> createState() => _ShopHomepageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _ShopHomepageState extends State<ShopHomepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class CreditPage extends StatefulWidget {
-  const CreditPage({super.key});
+class ShopCredit extends StatefulWidget {
+  const ShopCredit({super.key});
 
   @override
-  State<CreditPage> createState() => _CreditPageState();
+  State<ShopCredit> createState() => _ShopCreditState();
 }
 
-class _CreditPageState extends State<CreditPage> {
+class _ShopCreditState extends State<ShopCredit> {
   final double creditLimit = 20000.0;
   final double currentBalance = 5300.50; // amount owed
 

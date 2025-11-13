@@ -68,45 +68,54 @@ class Root extends StatefulWidget {
 }
 
 class _RootState extends State<Root> {
-  bool _loading = true;
-  bool _seen = false;
-  String? _role;
-  User? _firebaseUser;
+  // We can remove all the manual state variables. StreamBuilder will handle it.
 
-  @override
-  void initState() {
-    super.initState();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      setState(() {
-        _firebaseUser = user;
-        _checkSeen(); // Re-check seen status and role when auth state changes
-      });
-    });
-    _checkSeen();
-  }
-
-  Future<void> _checkSeen() async {
+  Future<Map<String, dynamic>> _getPrefsData() async {
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('seen_intermediary') ?? false;
     final role = prefs.getString('user_role');
-    setState(() {
-      _seen = seen;
-      _role = role;
-      _loading = false;
-    });
+    return {'seen': seen, 'role': role};
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // Case 1: Stream is still waiting for the first event
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
 
-    // If Firebase user is null, navigate to LoginScreen
-    if (_firebaseUser == null) return const LoginScreen();
+        // Case 2: User is logged in (snapshot has data)
+        if (snapshot.hasData && snapshot.data != null) {
+          // Now that we know the user is logged in, let's check their role from prefs
+          return FutureBuilder<Map<String, dynamic>>(
+            future: _getPrefsData(),
+            builder: (context, prefSnapshot) {
+              if (prefSnapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(body: Center(child: CircularProgressIndicator()));
+              }
 
-    // If user is logged in via Firebase, proceed with existing logic
-    if (!_seen) return const IntermediaryScreen();
-    if (_role == 'customer') return const NavbarCustomer();
-    // default to shop for any other/unknown role
-    return const NavbarShop();
+              final bool seen = prefSnapshot.data?['seen'] ?? false;
+              final String? role = prefSnapshot.data?['role'];
+
+              if (!seen) {
+                return const IntermediaryScreen();
+              }
+
+              if (role == 'shop') {
+                return const NavbarShop();
+              }
+              // Default to customer if role is null or something else
+              return const NavbarCustomer();
+            },
+          );
+        }
+
+        // Case 3: User is logged out (snapshot has no data)
+        return const LoginScreen();
+      },
+    );
   }
 }

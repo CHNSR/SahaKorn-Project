@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
+import 'package:sahakorn3/src/widgets/logout_list_title.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // 1. เพิ่ม Import นี้
 
-class Settingpage extends StatefulWidget {
-  const Settingpage({super.key});
+class ShopSettingpage extends StatefulWidget {
+  const ShopSettingpage({super.key});
 
   @override
-  State<Settingpage> createState() => _SettingpageState();
+  State<ShopSettingpage> createState() => _ShopSettingpageState();
 }
 
-class _SettingpageState extends State<Settingpage> {
+class _ShopSettingpageState extends State<ShopSettingpage> {
   bool _notification = true;
   // remove local dark mode flag; use ThemeProvider instead
   bool _biometrics = false;
@@ -100,11 +102,8 @@ class _SettingpageState extends State<Settingpage> {
                     title: const Text('Help & Support'),
                     onTap: () {},
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text('Sign out', style: TextStyle(color: Colors.red)),
-                    onTap: _confirmSignOut,
-                  ),
+                  const Divider(),
+                  const LogoutListTile(), // Logic การ Logout มาจาก Widget นี้ที่เดียว
                 ],
               ),
               const SizedBox(height: 24),
@@ -120,6 +119,8 @@ class _SettingpageState extends State<Settingpage> {
   }
 
   Widget _buildAccountHeader() {
+    // 2. แก้ไขให้ดึงข้อมูลผู้ใช้จริง
+    final user = FirebaseAuth.instance.currentUser;
     return Row(
       children: [
         CircleAvatar(radius: 36, backgroundColor: Colors.green[100], child: const Icon(Icons.store, size: 34, color: Colors.green)),
@@ -127,10 +128,10 @@ class _SettingpageState extends State<Settingpage> {
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text('ร้านค้าของฉัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              SizedBox(height: 4),
-              Text('owner@example.com', style: TextStyle(color: Colors.black54)),
+            children: [
+              const Text('ร้านค้าของฉัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(user?.email ?? 'No email found', style: const TextStyle(color: Colors.black54)),
             ],
           ),
         ),
@@ -158,25 +159,6 @@ class _SettingpageState extends State<Settingpage> {
         ],
       ),
     );
-  }
-
-  void _confirmSignOut() async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sign out', style: TextStyle(color: Colors.red))),
-        ],
-      ),
-    );
-
-    if (ok == true) {
-      // TODO: perform sign out logic
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signed out')));
-    }
   }
 }
 

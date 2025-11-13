@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 
-class QRGeneratePage extends StatelessWidget {
-  const QRGeneratePage({super.key});
+class ShopQrGeneratePage extends StatelessWidget {
+  const ShopQrGeneratePage({super.key});
 
   @override
   Widget build(BuildContext context) {
