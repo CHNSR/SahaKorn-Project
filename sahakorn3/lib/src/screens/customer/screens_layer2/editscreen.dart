@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sahakorn3/src/services/firebase/user/user_repository.dart';
+import 'package:sahakorn3/src/models/user.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  /// If [uid] is not provided, current FirebaseAuth user uid will be used.
+  final String? uid;
+  const EditProfileScreen({super.key, this.uid});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -11,172 +14,124 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  bool _isSaving = false;
+  final _repo = UserRepository();
 
-  // Controllers for text fields
-  final _nameController = TextEditingController();
-  final _surnameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _emailController = TextEditingController(); // To display non-editable email
+  final _nameCtrl = TextEditingController();
+  final _surnameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
 
-  final _currentUser = FirebaseAuth.instance.currentUser;
-  late DocumentReference _userDocRef;
+  bool _loading = false;
+  bool _saving = false;
+  AppUser? _user;
+
+  String? get _uid => widget.uid ?? FirebaseAuth.instance.currentUser?.uid;
 
   @override
   void initState() {
     super.initState();
-    if (_currentUser != null) {
-      _userDocRef = FirebaseFirestore.instance.collection('users').doc(_currentUser.uid);
-      _loadUserData();
-    }
+    _loadUser();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _surnameController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
+    _nameCtrl.dispose();
+    _surnameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _emailCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _loadUserData() async {
-    setState(() => _isLoading = true);
-    try {
-      final docSnapshot = await _userDocRef.get();
-      if (docSnapshot.exists) {
-        final data = docSnapshot.data() as Map<String, dynamic>;
-        _nameController.text = data['name'] ?? '';
-        _surnameController.text = data['surname'] ?? '';
-        _phoneController.text = data['phone'] ?? '';
-        _emailController.text = _currentUser!.email ?? 'No email';
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load user data: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+  Future<void> _loadUser() async {
+    final uid = _uid;
+    if (uid == null) return;
+    setState(() => _loading = true);
+    final user = await _repo.getById(uid);
+    if (!mounted) return;
+    setState(() {
+      _user = user;
+      _nameCtrl.text = user?.name ?? '';
+      _surnameCtrl.text = user?.surname ?? '';
+      _phoneCtrl.text = user?.phone ?? '';
+      _emailCtrl.text = user?.email ?? '';
+      _loading = false;
+    });
   }
 
-  Future<void> _saveChanges() async {
-    if (!_formKey.currentState!.validate()) {
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    final uid = _uid;
+    if (uid == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No authenticated user')));
       return;
     }
-    setState(() => _isSaving = true);
-    try {
-      await _userDocRef.update({
-        'name': _nameController.text.trim(),
-        'surname': _surnameController.text.trim(),
-        'phone': _phoneController.text.trim(),
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save changes: ${e.toString()}')),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+
+    setState(() => _saving = true);
+
+    final data = {
+      'name': _nameCtrl.text.trim(),
+      'surname': _surnameCtrl.text.trim(),
+      'phone': _phoneCtrl.text.trim(),
+    };
+
+    final String? err = await _repo.update(uid, data);
+    if (!mounted) return;
+    setState(() => _saving = false);
+
+    if (err == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated'), backgroundColor: Colors.green));
+      await _loadUser(); // refresh
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_currentUser == null) {
-      return Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: Text('Error: No user is logged in.')),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
         actions: [
           TextButton(
-            onPressed: _isSaving ? null : _saveChanges,
-            child: _isSaving
-                ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Save'),
-          ),
+            onPressed: _saving ? null : _save,
+            child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save', style: TextStyle(color: Colors.white)),
+          )
         ],
       ),
-      body: _isLoading
+      body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
-                child: Column(
+                child: ListView(
                   children: [
-                    // Profile Picture Section
-                    Stack(
-                      children: [
-                        const CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.grey,
-                          child: Icon(Icons.person, size: 50, color: Colors.white),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: Theme.of(context).primaryColor,
-                            child: IconButton(
-                              icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
-                              onPressed: () {
-                                // TODO: Implement image picker logic
-                              },
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Form Fields
                     TextFormField(
-                      controller: _nameController,
+                      controller: _nameCtrl,
                       decoration: const InputDecoration(labelText: 'Name'),
-                      validator: (value) => value!.isEmpty ? 'Please enter your name' : null,
+                      validator: (v) => v == null || v.trim().isEmpty ? 'Please enter name' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     TextFormField(
-                      controller: _surnameController,
+                      controller: _surnameCtrl,
                       decoration: const InputDecoration(labelText: 'Surname'),
-                      validator: (value) => value!.isEmpty ? 'Please enter your surname' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     TextFormField(
-                      controller: _phoneController,
-                      decoration: const InputDecoration(labelText: 'Phone Number'),
+                      controller: _phoneCtrl,
+                      decoration: const InputDecoration(labelText: 'Phone'),
                       keyboardType: TextInputType.phone,
-                      validator: (value) => value!.isEmpty ? 'Please enter your phone number' : null,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     TextFormField(
-                      controller: _emailController,
+                      controller: _emailCtrl,
                       decoration: const InputDecoration(labelText: 'Email'),
-                      readOnly: true, // Make email non-editable
+                      readOnly: true,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _saving ? null : _save,
+                      child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Save Changes'),
                     ),
                   ],
                 ),
