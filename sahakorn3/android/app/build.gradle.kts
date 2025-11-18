@@ -46,13 +46,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    // ใช้ Firebase BoM (Bill of Materials) เพื่อจัดการเวอร์ชันของ Firebase library
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-
-    // ประกาศ dependency ของ Firebase โดยไม่ต้องระบุเวอร์ชัน
-    // BoM จะจัดการเวอร์ชันที่เข้ากันได้ให้เอง
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-firestore")
-}

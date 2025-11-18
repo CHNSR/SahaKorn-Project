@@ -17,8 +17,13 @@ class _IntermediaryScreenState extends State<IntermediaryScreen> {
     await prefs.setBool('seen_intermediary', true);
     await prefs.setString('user_role', role);
     if (!mounted) return;
-    // Replace with root of app
-    Navigator.of(context).pushReplacementNamed('/');
+
+    // ไปหน้า create ตาม role ที่เลือก
+    if (role == 'shop') {
+      Navigator.of(context).pushReplacementNamed('/create_shop');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/create_customer_profile');
+    }
   }
 
   @override

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/widgets/shop_navbar.dart'; // added import
 
-class CreateShop extends StatefulWidget {
-  const CreateShop({super.key});
+class CreateShopScreen extends StatefulWidget {
+  const CreateShopScreen({super.key});
 
   @override
-  State<CreateShop> createState() => _CreateShopState();
+  State<CreateShopScreen> createState() => _CreateShopScreenState();
 }
 
-class _CreateShopState extends State<CreateShop> {
+class _CreateShopScreenState extends State<CreateShopScreen> {
   final _formKey = GlobalKey<FormState>();
   final _shopNameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -42,8 +43,6 @@ class _CreateShopState extends State<CreateShop> {
       setState(() => _isLoading = true);
 
       // --- Data Collection ---
-      // shop_id, own_id, and create_at would be generated here
-      // own_id would come from the currently logged-in user
       final shopData = {
         'shop_name': _shopNameController.text,
         'description': _descriptionController.text,
@@ -55,7 +54,6 @@ class _CreateShopState extends State<CreateShop> {
       // Simulate network request
       await Future.delayed(const Duration(seconds: 1));
 
-      // For now, just print the data
       debugPrint('Shop Data to be saved: $shopData');
 
       setState(() => _isLoading = false);
@@ -67,7 +65,11 @@ class _CreateShopState extends State<CreateShop> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pop();
+        // เปลี่ยนจาก pop() มาเป็นไปที่ NavbarShop และลบ history ทั้งหมด
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const NavbarShop()),
+          (route) => false,
+        );
       }
     }
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/screens/auth/login/login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sahakorn3/src/services/auth/auth_service.dart';
+import 'package:sahakorn3/src/services/firebase/auth/fire_register.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -21,71 +20,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _hidePassword = true;
   bool _hideConfirmPassword = true;
   bool _loading = false;
-
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    _passCtrl.dispose();
-    _confirmPassCtrl.dispose();
-    _nameCtrl.dispose();
-    _surnameCtrl.dispose();
-    _phonenumCtrl.dispose();
-    super.dispose();
-  }
-
-  final RegisterService _authService = RegisterService();
+  final FirebaseRegisterService _registerService = FirebaseRegisterService();
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
 
     try {
-      await _authService.registerWithEmailAndPassword(
-        _emailCtrl.text.trim(),
-        _passCtrl.text.trim(),
-        _nameCtrl.text.trim(),
-        _surnameCtrl.text.trim(),
-        _phonenumCtrl.text.trim(),
+      final String? errorMessage = await _registerService.registerUser(
+        email: _emailCtrl.text.trim(),
+        password: _passCtrl.text.trim(),
+        name: _nameCtrl.text.trim(),
+        surname: _surnameCtrl.text.trim(),
+        phone: _phonenumCtrl.text.trim(),
       );
 
       if (!mounted) return;
 
-      // แสดง SnackBar สีเขียวเมื่อสมัครสำเร็จ
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration successful! Please sign in.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-
-      // นำทางไปยังหน้า Login
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
-    } on FirebaseAuthException catch (e) {
-      String message;
-      if (e.code == 'weak-password') {
-        message = 'The password provided is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        message = 'The account already exists for that email.';
+      if (errorMessage == null) {
+        // success
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Registration successful! Please sign in.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
       } else {
-        message = e.message ?? 'An unknown error occurred.';
+        // service returned an error message
+        debugPrint('Register error: $errorMessage');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
+    } catch (e, st) {
+      // unexpected exception
+      debugPrint('Unexpected register exception: $e\n$st');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(message,style: TextStyle(color: Colors.black,fontFamily: 'Roboto',fontSize: 16)),
-          backgroundColor: const Color.fromARGB(255, 121, 146, 255),
+          content: Text('Unexpected error: ${e.toString()}'),
+          backgroundColor: Colors.red,
         ),
-        
-      );
-
-      
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An unexpected error occurred: ${e.toString()}')),
-      );
-    } finally {
-      setState(() => _loading = false);
+      );    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 

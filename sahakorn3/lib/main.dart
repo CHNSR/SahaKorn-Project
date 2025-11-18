@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/user_infomation.dart';
+import 'package:sahakorn3/src/screens/create/create_customer.dart';
+import 'package:sahakorn3/src/screens/create/create_shop.dart';
 import 'package:sahakorn3/src/widgets/shop_navbar.dart';
 import 'package:sahakorn3/src/widgets/customer_navbar.dart';
 import 'src/providers/theme_provider.dart';
@@ -12,10 +15,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => UserInformationProvider()),
+      ],
+      child: const MyApp(),
+    ),
   );
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -23,39 +32,38 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: Consumer<ThemeProvider>(
-        builder: (context, theme, _) => MaterialApp(
-          title: 'Flutter Demo',
-          theme: ThemeData(
-            // Keep green as the accent (seed) but force neutral white backgrounds
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.white, brightness: Brightness.light),
-            useMaterial3: true,
-            brightness: Brightness.light,
-            scaffoldBackgroundColor: Colors.white,
-            canvasColor: Colors.white,
-            cardColor: Colors.white,
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              elevation: 0,
-              centerTitle: false,
-            ),
-            iconTheme: const IconThemeData(color: Colors.black87),
-            // Keep text readable on white
-            textTheme: ThemeData.light().textTheme,
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, brightness: Brightness.dark),
-            useMaterial3: true,
-            brightness: Brightness.dark,
-          ),
-          themeMode: theme.mode,
-          home: const Root(),
-          debugShowCheckedModeBanner: false,
+    return MaterialApp(
+      title: 'Sahakorn',
+      theme: ThemeData(
+        // Keep green as the accent (seed) but force neutral white backgrounds
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.white, brightness: Brightness.light),
+        useMaterial3: true,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        canvasColor: Colors.white,
+        cardColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
+          centerTitle: false,
         ),
+        iconTheme: const IconThemeData(color: Colors.black87),
+        // Keep text readable on white
+        textTheme: ThemeData.light().textTheme,
       ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green, brightness: Brightness.dark),
+        useMaterial3: true,
+        brightness: Brightness.dark,
+      ),
+      themeMode: context.watch<ThemeProvider>().mode,
+      routes: {
+        '/': (context) => const Root(), // หรือหน้าเริ่มต้นของคุณ
+        '/create_shop': (context) => const CreateShopScreen(),
+        '/create_customer_profile': (context) => const CreateCustomerScreen(),
+      },
+      debugShowCheckedModeBanner: false,
     );
   }
 }

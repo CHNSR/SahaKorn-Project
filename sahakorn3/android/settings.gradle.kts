@@ -25,4 +25,7 @@ plugins {
     id("org.jetbrains.kotlin.android") version "2.1.0" apply false
 }
 
+// เพิ่มบล็อกนี้เพื่อให้ Gradle หา libs จาก google() และ mavenCentral()
+
+
 include(":app")

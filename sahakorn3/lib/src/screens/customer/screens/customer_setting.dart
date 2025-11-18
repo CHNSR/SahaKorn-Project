@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/screens/customer/screens_layer2/editscreen.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 
 
@@ -33,7 +34,9 @@ class _CustomerSettingState extends State<CustomerSetting> {
                     leading: const Icon(Icons.person),
                     title: const Text('Edit Profile'),
                     subtitle: const Text('Name, phone, address'),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+                    },
                   ),
                   ListTile(
                     leading: const Icon(Icons.payment),
