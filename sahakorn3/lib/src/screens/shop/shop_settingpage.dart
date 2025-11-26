@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
+import 'package:sahakorn3/src/screens/create/create_shop.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 1. เพิ่ม Import นี้
 
@@ -91,6 +92,15 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
               _buildSectionCard(
                 title: 'Account & App',
                 children: [
+                  ListTile(
+                    leading: const Icon(Icons.create),
+                    title: const Text('Create Shops'),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CreateShopScreen()),
+                      );
+                    },
+                  ),
                   ListTile(
                     leading: const Icon(Icons.info_outline),
                     title: const Text('About'),

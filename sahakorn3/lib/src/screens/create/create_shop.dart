@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/models/shop.dart';
+import 'package:sahakorn3/src/services/firebase/shop/fire_shop_write_service.dart';
+import 'package:sahakorn3/src/providers/user_infomation.dart';
 import 'package:sahakorn3/src/widgets/shop_navbar.dart'; // added import
 
 class CreateShopScreen extends StatefulWidget {
@@ -33,155 +37,257 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
     setState(() {
       _logoFileName = 'logo_example.png';
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Logo selected (simulation)')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Logo selected (simulation)')));
   }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
 
-      // --- Data Collection ---
-      final shopData = {
-        'shop_name': _shopNameController.text,
-        'description': _descriptionController.text,
-        'logo': _logoFileName ?? '',
-        'address': _addressController.text,
-        'status': _status,
-      };
+    final ownerId = context.read<UserInformationProvider?>()?.uid ?? '';
 
-      // Simulate network request
-      await Future.delayed(const Duration(seconds: 1));
+    final shopData = {
+      'name': _shopNameController.text.trim(),
+      'description': _descriptionController.text.trim(),
+      'logo': _logoFileName ?? '',
+      'address': _addressController.text.trim(),
+      'status': _status,
+      'ownerId': ownerId,
+      'phone': '', // optional - not in form
+    };
 
-      debugPrint('Shop Data to be saved: $shopData');
+    try {
+      // construct Shop model (adjust field names if your model differs)
+      final shop = Shop(
+        id: '', // leave empty, Firestore will generate id
+        name: shopData['name'] as String,
+        address: shopData['address'] as String,
+        ownerId: shopData['ownerId'] as String,
+        phone: '', // optional - not in form
+        description: shopData['description'] as String,
+        logo: shopData['logo'] as String,
+        status: shopData['status'] as String,
+      );
 
-      setState(() => _isLoading = false);
-
-      if (mounted) {
+      final writeSvc = FireShopWriteService();
+      final result = await writeSvc.createShop(shop);
+      // createShop returns doc id on success
+      if (result is String && result.isNotEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Shop created successfully!'),
             backgroundColor: Colors.green,
           ),
         );
-        // เปลี่ยนจาก pop() มาเป็นไปที่ NavbarShop และลบ history ทั้งหมด
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const NavbarShop()),
           (route) => false,
         );
+      } else {
+        // unexpected return
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to create shop'),
+            backgroundColor: Color(0xFFf25f4c),
+          ),
+        );
       }
+    } catch (e) {
+      debugPrint('Create shop error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: Color(0xFFf25f4c),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFb8c1ec),
       appBar: AppBar(
-        title: const Text('Create New Shop'),
+        title: const Text(
+          'Create New Shop',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFF1E293B),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Skip straight to NavbarShop and remove all previous routes
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const NavbarShop()),
+                (route) => false,
+              );
+            },
+            child: const Text('Skip', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Shop Name
-                TextFormField(
-                  controller: _shopNameController,
-                  decoration: const InputDecoration(labelText: 'Shop Name'),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a shop name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Description
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                  maxLines: 3,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a description';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Address
-                TextFormField(
-                  controller: _addressController,
-                  decoration: const InputDecoration(labelText: 'Address'),
-                  maxLines: 2,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter an address';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-
-                // Logo Picker
-                Row(
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _pickLogo,
-                      icon: const Icon(Icons.image),
-                      label: const Text('Upload Logo'),
-                    ),
-                    const SizedBox(width: 10),
-                    if (_logoFileName != null)
-                      Expanded(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 700),
+            child: Card(
+              elevation: 6,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: const BorderSide(color: Color(0xFF232946), width: 2),
+              ),
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              color: const Color(0xFFfffffe),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Title inside card
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 8.0),
                         child: Text(
-                          _logoFileName!,
-                          overflow: TextOverflow.ellipsis,
+                          'Shop Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                  ],
-                ),
-                const SizedBox(height: 16),
 
-                // Status
-                DropdownButtonFormField<String>(
-                  value: _status,
-                  decoration: const InputDecoration(labelText: 'Status'),
-                  items: ['active', 'deactivate']
-                      .map((label) => DropdownMenuItem(
-                            value: label,
-                            child: Text(label),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _status = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 32),
+                      // Shop Name
+                      TextFormField(
+                        controller: _shopNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Shop Name',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a shop name';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
 
-                // Submit Button
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                      // Description
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                        ),
+                        maxLines: 3,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a description';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Address
+                      TextFormField(
+                        controller: _addressController,
+                        decoration: const InputDecoration(labelText: 'Address'),
+                        maxLines: 2,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter an address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Logo Picker
+                      Row(
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: _pickLogo,
+                            icon: const Icon(Icons.image),
+                            label: const Text('Upload Logo'),
+                          ),
+                          const SizedBox(width: 10),
+                          if (_logoFileName != null)
+                            Expanded(
+                              child: Text(
+                                _logoFileName!,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Status
+                      DropdownButtonFormField<String>(
+                        value: _status,
+                        decoration: const InputDecoration(labelText: 'Status'),
+                        items:
+                            ['active', 'deactivate']
+                                .map(
+                                  (label) => DropdownMenuItem(
+                                    value: label,
+                                    child: Text(label),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _status = value);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Submit Button
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: const Color(0xFFeebbc3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(
+                              color: Color(0xFF121629),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        child:
+                            _isLoading
+                                ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                                : const Text(
+                                  'Create Shop',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF121629),
+                                  ),
+                                ),
+                      ),
+                    ],
                   ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Create Shop'),
                 ),
-              ],
+              ),
             ),
           ),
         ),
