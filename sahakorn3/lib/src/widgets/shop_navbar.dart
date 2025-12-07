@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
-import 'package:sahakorn3/src/screens/shop/shop_creditpage.dart';
+import 'package:sahakorn3/src/screens/shop/shop_loanpage.dart';
 import 'package:sahakorn3/src/screens/shop/shop_homepage.dart';
 import 'package:sahakorn3/src/screens/shop/shop_qr_generate_page.dart';
 import 'package:sahakorn3/src/screens/shop/shop_settingpage.dart';
@@ -51,29 +51,33 @@ class _NavbarShopState extends State<NavbarShop> {
         child: AppBar(
           automaticallyImplyLeading: false,
           title: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Image.asset(
-            "assets/icon/sahakorn_no_blackground.png",
-            height: 50,
-            width: 50,
-          ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: () async {
-              // allow developer to open intermediary screen manually
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const IntermediaryScreen()));
-            },
-            child: const Text(
-              "SahaKorn Project",
-              style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Image.asset(
+                "assets/icon/sahakorn_no_blackground.png",
+                height: 50,
+                width: 50,
               ),
-            ),
-          ),
-        ],
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () async {
+                  // allow developer to open intermediary screen manually
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const IntermediaryScreen(),
+                    ),
+                  );
+                },
+                child: const Text(
+                  "SahaKorn Project",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ),
           backgroundColor: const Color(0xFF1E293B),
           elevation: 4,
@@ -85,7 +89,10 @@ class _NavbarShopState extends State<NavbarShop> {
               },
             ),
             IconButton(
-              icon: const Icon(Icons.change_circle_outlined, color: Colors.white),
+              icon: const Icon(
+                Icons.change_circle_outlined,
+                color: Colors.white,
+              ),
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
                 // 2. แค่สลับ Role ใน SharedPreferences
@@ -101,13 +108,11 @@ class _NavbarShopState extends State<NavbarShop> {
           ],
         ),
       ),
-      
+
       extendBody: true,
       bottomNavigationBar: StylishBottomBar(
         backgroundColor: const Color(0xFF1E293B),
-        option: AnimatedBarOptions(
-          iconStyle: IconStyle.Default,
-          ),
+        option: AnimatedBarOptions(iconStyle: IconStyle.Default),
         items: [
           BottomBarItem(
             icon: const Icon(Icons.house_outlined),
@@ -125,14 +130,17 @@ class _NavbarShopState extends State<NavbarShop> {
             selectedIcon: const Icon(Icons.transform_outlined),
             selectedColor: Color(0xFFBAFFF5),
             unSelectedColor: Colors.white70,
-            title: const Text('Transaction', style: TextStyle(color: Colors.white)),
+            title: const Text(
+              'Transaction',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
           BottomBarItem(
-            icon: const Icon(Icons.credit_card_outlined),
-            selectedIcon: const Icon(Icons.credit_card),
+            icon: const Icon(Icons.money_outlined),
+            selectedIcon: const Icon(Icons.money),
             selectedColor: Color(0xFFBAFFF5),
             unSelectedColor: Colors.white70,
-            title: const Text('Creditpage', style: TextStyle(color: Colors.white)),
+            title: const Text('Loan', style: TextStyle(color: Colors.white)),
           ),
           BottomBarItem(
             icon: const Icon(Icons.settings_outlined),

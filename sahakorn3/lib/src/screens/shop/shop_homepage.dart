@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
+import 'package:sahakorn3/src/screens/shop/shop_transactionpage.dart';
+import 'package:sahakorn3/src/screens/shop/widgets/transaction_chart.dart';
 
 class ShopHomepage extends StatefulWidget {
   const ShopHomepage({super.key});
@@ -26,9 +27,19 @@ class _ShopHomepageState extends State<ShopHomepage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Dashboard', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.grey[900])),
+                      Text(
+                        'Dashboard',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[900],
+                        ),
+                      ),
                       const SizedBox(height: 6),
-                      Text('Overview of customers and shop transactions', style: TextStyle(color: Colors.grey[600])),
+                      Text(
+                        'Overview of customers and shop transactions',
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
                     ],
                   ),
                   CircleAvatar(
@@ -46,7 +57,9 @@ class _ShopHomepageState extends State<ShopHomepage> {
                   Expanded(
                     flex: 2,
                     child: Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 2,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -56,17 +69,38 @@ class _ShopHomepageState extends State<ShopHomepage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: const [
-                                Text('Current Balance', style: TextStyle(color: Colors.black54)),
+                                Text(
+                                  'Current Balance',
+                                  style: TextStyle(color: Colors.black54),
+                                ),
                                 SizedBox(height: 8),
-                                Text('12,300.00 ฿', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                                Text(
+                                  '12,300.00 ฿',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: const [
-                                Text('+ 18,000.00 ฿', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                                Text(
+                                  '+ 18,000.00 ฿',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                                 SizedBox(height: 8),
-                                Text('- 5,700.00 ฿', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                Text(
+                                  '- 5,700.00 ฿',
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -81,77 +115,64 @@ class _ShopHomepageState extends State<ShopHomepage> {
                         ElevatedButton.icon(
                           onPressed: () {},
                           icon: const Icon(Icons.add),
-                          label: const Text('Add Txn'),
-                          style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                          label: const Text(
+                            'Add Stock',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         OutlinedButton.icon(
                           onPressed: () {},
                           icon: const Icon(Icons.qr_code_scanner),
                           label: const Text('Scan QR'),
-                          style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(48),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
 
-              const SizedBox(height: 18),
+              // Transaction Chart
+              const TransactionChart(),
 
-              // Small line chart card
-              Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.only(left: 4, bottom: 8),
-                        child: Text('Transactions Trend', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                      SizedBox(
-                        height: 180,
-                        child: LineChart(
-                          LineChartData(
-                            titlesData: FlTitlesData(
-                              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
-                              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true)),
-                            ),
-                            gridData: FlGridData(show: true),
-                            borderData: FlBorderData(show: true),
-                            lineBarsData: [
-                              LineChartBarData(
-                                isCurved: true,
-                                color: Colors.green,
-                                barWidth: 3,
-                                spots: const [
-                                  FlSpot(0, 1),
-                                  FlSpot(1, 3),
-                                  FlSpot(2, 2),
-                                  FlSpot(3, 5),
-                                  FlSpot(4, 3.5),
-                                  FlSpot(5, 4),
-                                  FlSpot(6, 7),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 18),
+              const SizedBox(height: 10),
 
               // Recent transactions list
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text('Recent Transactions', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Recent Transactions',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ShopTransaction(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'See All',
+                        style: TextStyle(color: Colors.black, fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Column(
                 children: [
@@ -211,11 +232,20 @@ class _ShopHomepageState extends State<ShopHomepage> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
-          child: Icon(isIncome ? Icons.arrow_downward : Icons.arrow_upward, color: isIncome ? Colors.green : Colors.red),
+          child: Icon(
+            isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+            color: isIncome ? Colors.green : Colors.red,
+          ),
         ),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(date, style: const TextStyle(color: Colors.black54)),
-        trailing: Text('${isIncome ? '+' : '-'}${amount.abs().toStringAsFixed(2)} ฿', style: TextStyle(fontWeight: FontWeight.bold, color: isIncome ? Colors.green : Colors.red)),
+        trailing: Text(
+          '${isIncome ? '+' : '-'}${amount.abs().toStringAsFixed(2)} ฿',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isIncome ? Colors.green : Colors.red,
+          ),
+        ),
         onTap: () {
           // placeholder: open transaction detail
         },
