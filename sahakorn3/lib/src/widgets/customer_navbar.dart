@@ -1,17 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/customer/screens/customer_home.dart';
-import 'package:sahakorn3/src/screens/customer/screens/customer_shop.dart';
-import 'package:sahakorn3/src/screens/customer/screens/customer_credit.dart';
-import 'package:sahakorn3/src/screens/customer/screens/customer_setting.dart';
-import 'package:sahakorn3/src/screens/customer/screens/customer_pay.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
-import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sahakorn3/main.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:sahakorn3/src/services/firebase/shop/fire_shop_read_service.dart';
-import 'package:sahakorn3/src/models/shop.dart';
 
 class NavbarCustomer extends StatefulWidget {
   const NavbarCustomer({super.key});
@@ -50,11 +43,7 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
               GestureDetector(
                 onTap: () async {
                   // allow developer to open intermediary screen manually
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const IntermediaryScreen(),
-                    ),
-                  );
+                  Navigator.of(context).pushNamed(Routes.selectRole);
                 },
                 child: const Text(
                   "SahaKorn Project",
@@ -73,7 +62,7 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
             IconButton(
               icon: const Icon(Icons.notifications, color: Colors.white),
               onPressed: () {
-                // Handle notifications
+                Navigator.of(context).pushNamed(Routes.notification);
               },
             ),
             StreamBuilder<List<Shop>>(
@@ -95,7 +84,9 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
                       // 3. สั่งให้แอปเริ่มต้นใหม่จาก Root widget
                       // นี่จะทำให้ StreamBuilder ใน main.dart ทำงานอีกครั้งและสร้าง NavbarShop ที่ถูกต้อง
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const Root()),
+                        MaterialPageRoute(
+                          builder: (context) => const AuthGate(),
+                        ),
                         (route) => false,
                       );
                     },

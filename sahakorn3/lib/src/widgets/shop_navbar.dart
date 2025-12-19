@@ -1,15 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
-import 'package:sahakorn3/src/screens/shop/shop_loanpage.dart';
-import 'package:sahakorn3/src/screens/shop/shop_homepage.dart';
-import 'package:sahakorn3/src/screens/shop/shop_qr_generate_page.dart';
-import 'package:sahakorn3/src/screens/shop/shop_settingpage.dart';
-import 'package:sahakorn3/src/screens/shop/shop_transactionpage.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
-import 'package:sahakorn3/main.dart'; // 1. เพิ่ม Import นี้
-import 'package:sahakorn3/src/widgets/customer_navbar.dart'; // Import customer navbar
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NavbarShop extends StatefulWidget {
   const NavbarShop({super.key});
@@ -24,18 +17,6 @@ class _NavbarShopState extends State<NavbarShop> {
   final controller = PageController();
 
   // 2. ตรวจสอบให้แน่ใจว่า List นี้เรียกใช้หน้าจอของ Shop ทั้งหมด
-  static const List<Widget> _pages = <Widget>[
-    ShopHomepage(),
-    ShopTransaction(),
-    ShopCredit(),
-    ShopSettingpage(), // <--- แก้ไขจาก CustomerSetting เป็น Settingpage
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   void dispose() {
@@ -62,11 +43,7 @@ class _NavbarShopState extends State<NavbarShop> {
               GestureDetector(
                 onTap: () async {
                   // allow developer to open intermediary screen manually
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const IntermediaryScreen(),
-                    ),
-                  );
+                  Navigator.of(context).pushNamed(Routes.selectRole);
                 },
                 child: const Text(
                   "SahaKorn Project",
@@ -86,6 +63,7 @@ class _NavbarShopState extends State<NavbarShop> {
               icon: const Icon(Icons.notifications, color: Colors.white),
               onPressed: () {
                 // Handle notifications
+                Navigator.of(context).pushNamed(Routes.notification);
               },
             ),
             IconButton(
@@ -100,7 +78,7 @@ class _NavbarShopState extends State<NavbarShop> {
 
                 // 3. สั่งให้แอปเริ่มต้นใหม่จาก Root widget
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const Root()),
+                  MaterialPageRoute(builder: (context) => const AuthGate()),
                   (route) => false,
                 );
               },

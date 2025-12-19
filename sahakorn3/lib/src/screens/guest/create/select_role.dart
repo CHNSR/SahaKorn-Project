@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class IntermediaryScreen extends StatefulWidget {
-  const IntermediaryScreen({super.key});
+class SelectRole extends StatefulWidget {
+  const SelectRole({super.key});
 
   @override
-  State<IntermediaryScreen> createState() => _IntermediaryScreenState();
+  State<SelectRole> createState() => _SelectRoleState();
 }
 
-class _IntermediaryScreenState extends State<IntermediaryScreen> {
+class _SelectRoleState extends State<SelectRole> {
   bool _saving = false;
 
   Future<void> _selectRole(String role) async {
@@ -37,9 +37,14 @@ class _IntermediaryScreenState extends State<IntermediaryScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 8),
-              const Text('Choose your role', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const Text(
+                'Choose your role',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
-              const Text('Select whether you are using the app as a Shop or as a Customer. You can change this later in settings.'),
+              const Text(
+                'Select whether you are using the app as a Shop or as a Customer. You can change this later in settings.',
+              ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 icon: const Icon(Icons.storefront),

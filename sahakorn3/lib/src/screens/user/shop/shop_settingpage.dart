@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
-import 'package:sahakorn3/src/screens/create/create_shop.dart';
+import 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // 1. เพิ่ม Import นี้
 
@@ -72,14 +72,16 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     value: _notification,
                     onChanged: (val) => setState(() => _notification = val),
                   ),
-                  Consumer<ThemeProvider>(builder: (context, theme, _) {
-                    return SwitchListTile(
-                      secondary: const Icon(Icons.dark_mode),
-                      title: const Text('Dark Mode'),
-                      value: theme.isDark,
-                      onChanged: (val) => theme.toggle(),
-                    );
-                  }),
+                  Consumer<ThemeProvider>(
+                    builder: (context, theme, _) {
+                      return SwitchListTile(
+                        secondary: const Icon(Icons.dark_mode),
+                        title: const Text('Dark Mode'),
+                        value: theme.isDark,
+                        onChanged: (val) => theme.toggle(),
+                      );
+                    },
+                  ),
                   ListTile(
                     leading: const Icon(Icons.language),
                     title: const Text('Language'),
@@ -97,7 +99,9 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     title: const Text('Create Shops'),
                     onTap: () {
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const CreateShopScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const CreateShopScreen(),
+                        ),
                       );
                     },
                   ),
@@ -118,7 +122,10 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
               ),
               const SizedBox(height: 24),
               Center(
-                child: Text('Made with ❤ by Sahakorn', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                child: Text(
+                  'Made with ❤ by Sahakorn',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
               ),
               const SizedBox(height: 24),
             ],
@@ -133,27 +140,37 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
     final user = FirebaseAuth.instance.currentUser;
     return Row(
       children: [
-        CircleAvatar(radius: 36, backgroundColor: Colors.green[100], child: const Icon(Icons.store, size: 34, color: Colors.green)),
+        CircleAvatar(
+          radius: 36,
+          backgroundColor: Colors.green[100],
+          child: const Icon(Icons.store, size: 34, color: Colors.green),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('ร้านค้าของฉัน', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'ร้านค้าของฉัน',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 4),
-              Text(user?.email ?? 'No email found', style: const TextStyle(color: Colors.black54)),
+              Text(
+                user?.email ?? 'No email found',
+                style: const TextStyle(color: Colors.black54),
+              ),
             ],
           ),
         ),
-        IconButton(
-          icon: const Icon(Icons.edit_outlined),
-          onPressed: () {},
-        ),
+        IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () {}),
       ],
     );
   }
 
-  Widget _buildSectionCard({required String title, required List<Widget> children}) {
+  Widget _buildSectionCard({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 1,
@@ -161,8 +178,14 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-            child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           const Divider(height: 0),
           ...children,
@@ -171,4 +194,3 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
     );
   }
 }
-

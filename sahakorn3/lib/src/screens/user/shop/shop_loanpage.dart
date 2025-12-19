@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/shop/widgets/loan_usage_chart.dart';
+import 'package:sahakorn3/src/screens/user/shop/widgets/loan_usage_chart.dart';
 
 class ShopCredit extends StatefulWidget {
   const ShopCredit({super.key});

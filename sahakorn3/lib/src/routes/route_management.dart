@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sahakorn3/src/screens/intermediary/intermediary.dart';
-import 'package:sahakorn3/src/screens/auth/login/login.dart';
-import 'package:sahakorn3/src/widgets/shop_navbar.dart';
-import 'package:sahakorn3/src/widgets/customer_navbar.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
-class Root extends StatefulWidget {
-  const Root({super.key});
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
 
   @override
-  State<Root> createState() => _RootState();
+  State<AuthGate> createState() => _AuthGateState();
 }
 
-class _RootState extends State<Root> {
+class _AuthGateState extends State<AuthGate> {
   Future<Map<String, dynamic>> _getPrefsData() async {
     final prefs = await SharedPreferences.getInstance();
     final seen = prefs.getBool('seen_intermediary') ?? false;
@@ -49,7 +46,7 @@ class _RootState extends State<Root> {
               final String? role = prefSnapshot.data?['role'];
 
               if (!seen) {
-                return const IntermediaryScreen();
+                return const SelectRole();
               }
 
               if (role == 'shop') {

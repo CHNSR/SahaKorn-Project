@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/auth/login/login.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:sahakorn3/src/services/firebase/auth/fire_register.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -45,15 +45,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
+        Navigator.of(context).pushReplacementNamed(Routes.login);
       } else {
         // service returned an error message
         debugPrint('Register error: $errorMessage');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
         );
       }
     } catch (e, st) {
@@ -65,7 +62,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           content: Text('Unexpected error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
-      );    } finally {
+      );
+    } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
@@ -75,7 +73,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFFb8c1ec),
       appBar: AppBar(
-        title: const Text('Sign up',style: TextStyle(color: Colors.white,fontFamily: 'Roboto',fontSize: 20)),
+        title: const Text(
+          'Sign up',
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Roboto',
+            fontSize: 20,
+          ),
+        ),
         backgroundColor: const Color(0xFF232946),
         elevation: 2,
         automaticallyImplyLeading: false,
@@ -102,9 +107,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 8),
-                        const Text('Create an account', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Create an account',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        const Text('Sign up to get started with SahaKorn', style: TextStyle(color: Colors.black54)),
+                        const Text(
+                          'Sign up to get started with SahaKorn',
+                          style: TextStyle(color: Colors.black54),
+                        ),
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _emailCtrl,
@@ -114,7 +128,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter email';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Enter email';
                             if (!v.contains('@')) return 'Enter a valid email';
                             return null;
                           },
@@ -128,7 +143,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: Icon(Icons.person_outline),
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter name';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Enter name';
                             return null;
                           },
                         ),
@@ -141,7 +157,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: Icon(Icons.person_outline),
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter surname';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Enter surname';
                             return null;
                           },
                         ),
@@ -154,8 +171,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             prefixIcon: Icon(Icons.phone),
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter phone number';
-                            if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(v)) return 'Enter a valid phone number';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Enter phone number';
+                            if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(v))
+                              return 'Enter a valid phone number';
                             return null;
                           },
                         ),
@@ -167,13 +186,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             labelText: 'Password',
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
-                              icon: Icon(_hidePassword ? Icons.visibility_off : Icons.visibility),
-                              onPressed: () => setState(() => _hidePassword = !_hidePassword),
+                              icon: Icon(
+                                _hidePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed:
+                                  () => setState(
+                                    () => _hidePassword = !_hidePassword,
+                                  ),
                             ),
                           ),
                           validator: (v) {
                             if (v == null || v.isEmpty) return 'Enter password';
-                            if (v.length < 6) return 'Password must be at least 6 characters';
+                            if (v.length < 6)
+                              return 'Password must be at least 6 characters';
                             return null;
                           },
                         ),
@@ -185,13 +212,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             labelText: 'Confirm Password',
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
-                              icon: Icon(_hideConfirmPassword ? Icons.visibility_off : Icons.visibility),
-                              onPressed: () => setState(() => _hideConfirmPassword = !_hideConfirmPassword),
+                              icon: Icon(
+                                _hideConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                              ),
+                              onPressed:
+                                  () => setState(
+                                    () =>
+                                        _hideConfirmPassword =
+                                            !_hideConfirmPassword,
+                                  ),
                             ),
                           ),
                           validator: (v) {
-                            if (v == null || v.isEmpty) return 'Confirm your password';
-                            if (v != _passCtrl.text) return 'Passwords do not match';
+                            if (v == null || v.isEmpty)
+                              return 'Confirm your password';
+                            if (v != _passCtrl.text)
+                              return 'Passwords do not match';
                             return null;
                           },
                         ),
@@ -202,12 +240,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             onPressed: _loading ? null : _submit,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFabd1c6),
-                              side: BorderSide(color: Color(0xFF121629), width: 2),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(
+                                color: Color(0xFF121629),
+                                width: 2,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                            child: _loading
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Color(0xFFF9bc60), strokeWidth: 2))
-                                : const Text('Sign up'),
+                            child:
+                                _loading
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Color(0xFFF9bc60),
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Sign up'),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -215,11 +266,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Text('Already have an account?'),
-                            TextButton(onPressed: () {
-                              Navigator.push(context, MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              )); 
-                            }, child: const Text('Sign in')),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, Routes.login);
+                              },
+                              child: const Text('Sign in'),
+                            ),
                           ],
                         ),
                       ],

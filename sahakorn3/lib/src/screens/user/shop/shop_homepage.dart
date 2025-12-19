@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
-import 'package:sahakorn3/src/screens/shop/shop_transactionpage.dart';
-import 'package:sahakorn3/src/screens/shop/widgets/transaction_chart.dart';
+import 'package:sahakorn3/src/screens/user/shop/shop_transactionpage.dart';
+import 'package:sahakorn3/src/screens/user/shop/widgets/transaction_chart.dart';
 
 class ShopHomepage extends StatefulWidget {
   const ShopHomepage({super.key});
