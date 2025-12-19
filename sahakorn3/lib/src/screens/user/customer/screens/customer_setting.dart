@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sahakorn3/src/screens/user/customer/screens_layer2/editscreen.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 import 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
 import 'package:sahakorn3/src/widgets/shop_navbar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sahakorn3/main.dart';
 
 class CustomerSetting extends StatefulWidget {
   const CustomerSetting({super.key});

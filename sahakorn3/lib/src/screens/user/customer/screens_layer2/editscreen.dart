@@ -62,7 +62,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     final uid = _uid;
     if (uid == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No authenticated user')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No authenticated user')));
       return;
     }
 
@@ -79,7 +81,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _saving = false);
 
     if (err == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profile updated'),
+          backgroundColor: Colors.green,
+        ),
+      );
       await _loadUser(); // refresh
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
@@ -94,49 +101,71 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         actions: [
           TextButton(
             onPressed: _saving ? null : _save,
-            child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Save', style: TextStyle(color: Colors.white)),
-          )
+            child:
+                _saving
+                    ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    TextFormField(
-                      controller: _nameCtrl,
-                      decoration: const InputDecoration(labelText: 'Name'),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Please enter name' : null,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _surnameCtrl,
-                      decoration: const InputDecoration(labelText: 'Surname'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _phoneCtrl,
-                      decoration: const InputDecoration(labelText: 'Phone'),
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _emailCtrl,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      readOnly: true,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _saving ? null : _save,
-                      child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Save Changes'),
-                    ),
-                  ],
+      body:
+          _loading
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    children: [
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: const InputDecoration(labelText: 'Name'),
+                        validator:
+                            (v) =>
+                                v == null || v.trim().isEmpty
+                                    ? 'Please enter name'
+                                    : null,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _surnameCtrl,
+                        decoration: const InputDecoration(labelText: 'Surname'),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _phoneCtrl,
+                        decoration: const InputDecoration(labelText: 'Phone'),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        readOnly: true,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _saving ? null : _save,
+                        child:
+                            _saving
+                                ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                : const Text('Save Changes'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

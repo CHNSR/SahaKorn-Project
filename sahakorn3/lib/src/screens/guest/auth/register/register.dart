@@ -71,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFb8c1ec),
+      backgroundColor: const Color(0xFFb8c1ec),
       appBar: AppBar(
         title: const Text(
           'Sign up',
@@ -127,12 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             labelText: 'Email',
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty)
-                              return 'Enter email';
-                            if (!v.contains('@')) return 'Enter a valid email';
-                            return null;
-                          },
+                          validator: Validators.validateEmail,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -142,11 +137,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             labelText: 'Name',
                             prefixIcon: Icon(Icons.person_outline),
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty)
-                              return 'Enter name';
-                            return null;
-                          },
+                          validator:
+                              (v) => Validators.validateRequired(v, 'Name'),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -156,11 +148,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             labelText: 'Surname',
                             prefixIcon: Icon(Icons.person_outline),
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty)
-                              return 'Enter surname';
-                            return null;
-                          },
+                          validator:
+                              (v) => Validators.validateRequired(v, 'Surname'),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -170,13 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             labelText: 'Phone Number',
                             prefixIcon: Icon(Icons.phone),
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty)
-                              return 'Enter phone number';
-                            if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(v))
-                              return 'Enter a valid phone number';
-                            return null;
-                          },
+                          validator: Validators.validatePhone,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -197,12 +180,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                             ),
                           ),
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'Enter password';
-                            if (v.length < 6)
-                              return 'Password must be at least 6 characters';
-                            return null;
-                          },
+                          validator: Validators.validatePassword,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -225,13 +203,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                             ),
                           ),
-                          validator: (v) {
-                            if (v == null || v.isEmpty)
-                              return 'Confirm your password';
-                            if (v != _passCtrl.text)
-                              return 'Passwords do not match';
-                            return null;
-                          },
+                          validator:
+                              (v) => Validators.validateConfirmPassword(
+                                v,
+                                _passCtrl.text,
+                              ),
                         ),
                         const SizedBox(height: 24),
                         SizedBox(

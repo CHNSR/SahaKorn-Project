@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class LoanUsageChart extends StatefulWidget {
   const LoanUsageChart({super.key});
@@ -176,7 +177,7 @@ class _LoanUsageChartState extends State<LoanUsageChart> {
                         return touchedBarSpots.map((barSpot) {
                           final flSpot = barSpot;
                           return LineTooltipItem(
-                            '${flSpot.y.round()} ฿',
+                            Formatters.formatBaht(flSpot.y),
                             const TextStyle(color: Colors.white),
                           );
                         }).toList();

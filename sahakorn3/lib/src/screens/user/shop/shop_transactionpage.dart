@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class ShopTransaction extends StatefulWidget {
   const ShopTransaction({super.key});
@@ -49,7 +50,8 @@ class _ShopTransactionState extends State<ShopTransaction> {
       if (_filter == 'Income' && t.amount <= 0) return false;
       if (_filter == 'Expenses' && t.amount > 0) return false;
       if (query.isEmpty) return true;
-      return t.title.toLowerCase().contains(query) || t.category.toLowerCase().contains(query);
+      return t.title.toLowerCase().contains(query) ||
+          t.category.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -133,8 +135,12 @@ class _ShopTransactionState extends State<ShopTransaction> {
 
   Widget _buildSummaryCard() {
     final balance = _transactions.fold<double>(0, (s, e) => s + e.amount);
-    final income = _transactions.where((t) => t.amount > 0).fold<double>(0, (s, e) => s + e.amount);
-    final expense = _transactions.where((t) => t.amount < 0).fold<double>(0, (s, e) => s + e.amount.abs());
+    final income = _transactions
+        .where((t) => t.amount > 0)
+        .fold<double>(0, (s, e) => s + e.amount);
+    final expense = _transactions
+        .where((t) => t.amount < 0)
+        .fold<double>(0, (s, e) => s + e.amount.abs());
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -147,9 +153,18 @@ class _ShopTransactionState extends State<ShopTransaction> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Current Balance', style: TextStyle(color: Colors.black54)),
+                const Text(
+                  'Current Balance',
+                  style: TextStyle(color: Colors.black54),
+                ),
                 const SizedBox(height: 6),
-                Text('${balance.toStringAsFixed(2)} ฿', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  '${balance.toStringAsFixed(2)} ฿',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
             Row(
@@ -157,9 +172,21 @@ class _ShopTransactionState extends State<ShopTransaction> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('+${income.toStringAsFixed(0)} ฿', style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                    Text(
+                      Formatters.formatBaht(income, showSign: true),
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    Text('-${expense.toStringAsFixed(0)} ฿', style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    Text(
+                      Formatters.formatBaht(-expense, showSign: true),
+                      style: const TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -180,19 +207,25 @@ class _ShopTransactionState extends State<ShopTransaction> {
             decoration: InputDecoration(
               hintText: 'Search transactions or category',
               prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 0,
+                horizontal: 12,
+              ),
             ),
           ),
         ),
         const SizedBox(width: 8),
         PopupMenuButton<String>(
           onSelected: (v) => setState(() => _filter = v),
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: 'All', child: Text('All')),
-            PopupMenuItem(value: 'Income', child: Text('Income')),
-            PopupMenuItem(value: 'Expenses', child: Text('Expenses')),
-          ],
+          itemBuilder:
+              (context) => const [
+                PopupMenuItem(value: 'All', child: Text('All')),
+                PopupMenuItem(value: 'Income', child: Text('Income')),
+                PopupMenuItem(value: 'Expenses', child: Text('Expenses')),
+              ],
           child: Chip(label: Text(_filter)),
         ),
       ],
@@ -205,7 +238,12 @@ class _ShopTransactionState extends State<ShopTransaction> {
       return ListView(
         children: const [
           SizedBox(height: 60),
-          Center(child: Text('No transactions', style: TextStyle(color: Colors.black54))),
+          Center(
+            child: Text(
+              'No transactions',
+              style: TextStyle(color: Colors.black54),
+            ),
+          ),
         ],
       );
     }
@@ -217,32 +255,55 @@ class _ShopTransactionState extends State<ShopTransaction> {
         final t = items[index];
         final isIncome = t.amount > 0;
         return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           elevation: 1,
           child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
             leading: CircleAvatar(
               backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
-              child: Icon(isIncome ? Icons.arrow_downward : Icons.arrow_upward, color: isIncome ? Colors.green : Colors.red),
+              child: Icon(
+                isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+                color: isIncome ? Colors.green : Colors.red,
+              ),
             ),
-            title: Text(t.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('${_formatDate(t.date)} • ${t.category}', style: const TextStyle(color: Colors.black54)),
+            title: Text(
+              t.title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              '${_formatDate(t.date)} • ${t.category}',
+              style: const TextStyle(color: Colors.black54),
+            ),
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${isIncome ? '+' : '-'}${t.amount.abs().toStringAsFixed(2)} ฿',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: isIncome ? Colors.green : Colors.red),
+                  'Amount: ${Formatters.formatBaht(t.amount, showSign: true)}',
+                  style: TextStyle(
+                    color: isIncome ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey[200],
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(t.amount > 0 ? 'Completed' : 'Paid', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                  child: Text(
+                    t.amount > 0 ? 'Completed' : 'Paid',
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
                 ),
               ],
             ),
@@ -262,7 +323,9 @@ class _ShopTransactionState extends State<ShopTransaction> {
   void _showDetails(TransactionItem t) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(12))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+      ),
       builder: (context) {
         final isIncome = t.amount > 0;
         return Padding(
@@ -271,13 +334,25 @@ class _ShopTransactionState extends State<ShopTransaction> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(t.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                t.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
               Text('Category: ${t.category}'),
               const SizedBox(height: 4),
               Text('Date: ${_formatDate(t.date)}'),
               const SizedBox(height: 4),
-              Text('Amount: ${isIncome ? '+' : '-'}${t.amount.abs().toStringAsFixed(2)} ฿', style: TextStyle(color: isIncome ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
+              Text(
+                Formatters.formatBaht(t.amount, showSign: true),
+                style: TextStyle(
+                  color: isIncome ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
                 onPressed: () => Navigator.of(context).pop(),
@@ -298,5 +373,10 @@ class TransactionItem {
   final double amount;
   final String category;
 
-  TransactionItem({required this.title, required this.date, required this.amount, required this.category});
+  TransactionItem({
+    required this.title,
+    required this.date,
+    required this.amount,
+    required this.category,
+  });
 }

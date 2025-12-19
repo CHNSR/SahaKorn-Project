@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class TransactionChart extends StatefulWidget {
   const TransactionChart({super.key});
@@ -242,7 +243,7 @@ class _TransactionChartState extends State<TransactionChart> {
                                 label = 'Cash: ';
 
                               return LineTooltipItem(
-                                '$label${flSpot.y.round()} ฿',
+                                '$label${Formatters.formatBaht(flSpot.y)}',
                                 TextStyle(color: barSpot.bar.color),
                               );
                             }).toList();

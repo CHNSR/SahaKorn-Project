@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/screens/user/shop/widgets/loan_usage_chart.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class ShopCredit extends StatefulWidget {
   const ShopCredit({super.key});
@@ -101,7 +102,7 @@ class _ShopCreditState extends State<ShopCredit> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '${creditLimit.toStringAsFixed(2)} ฿',
+                                  Formatters.formatBaht(creditLimit),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
@@ -118,7 +119,7 @@ class _ShopCreditState extends State<ShopCredit> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '${available.toStringAsFixed(2)} ฿',
+                                  Formatters.formatBaht(available),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,

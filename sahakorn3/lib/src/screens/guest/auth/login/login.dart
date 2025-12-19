@@ -13,7 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passCtrl = TextEditingController();
-  bool _hide = true;
+  bool _hidePassword = true;
   bool _loading = false;
   bool _remember = true;
   final FirebaseLoginService _loginService = FirebaseLoginService();
@@ -126,32 +126,28 @@ class _LoginScreenState extends State<LoginScreen> {
                             labelText: 'Email',
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty)
-                              return 'Enter email';
-                            if (!v.contains('@')) return 'Enter a valid email';
-                            return null;
-                          },
+                          validator: Validators.validateEmail,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         TextFormField(
                           controller: _passCtrl,
-                          obscureText: _hide,
+                          obscureText: _hidePassword,
                           decoration: InputDecoration(
                             labelText: 'Password',
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _hide ? Icons.visibility_off : Icons.visibility,
+                                _hidePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                               ),
-                              onPressed: () => setState(() => _hide = !_hide),
+                              onPressed:
+                                  () => setState(
+                                    () => _hidePassword = !_hidePassword,
+                                  ),
                             ),
                           ),
-                          validator:
-                              (v) =>
-                                  (v == null || v.isEmpty)
-                                      ? 'Enter password'
-                                      : null,
+                          validator: Validators.validatePassword,
                         ),
                         const SizedBox(height: 12),
                         Row(

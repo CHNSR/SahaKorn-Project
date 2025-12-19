@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:sahakorn3/src/screens/user/shop/shop_transactionpage.dart';
 import 'package:sahakorn3/src/screens/user/shop/widgets/transaction_chart.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class ShopHomepage extends StatefulWidget {
   const ShopHomepage({super.key});
@@ -68,14 +69,14 @@ class _ShopHomepageState extends State<ShopHomepage> {
                           children: [
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children: [
                                 Text(
                                   'Current Balance',
                                   style: TextStyle(color: Colors.black54),
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  '12,300.00 ฿',
+                                  Formatters.formatBaht(12300.00),
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
@@ -85,9 +86,12 @@ class _ShopHomepageState extends State<ShopHomepage> {
                             ),
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.end,
-                              children: const [
+                              children: [
                                 Text(
-                                  '+ 18,000.00 ฿',
+                                  Formatters.formatBaht(
+                                    18000.00,
+                                    showSign: true,
+                                  ),
                                   style: TextStyle(
                                     color: Colors.green,
                                     fontWeight: FontWeight.bold,
@@ -95,7 +99,10 @@ class _ShopHomepageState extends State<ShopHomepage> {
                                 ),
                                 SizedBox(height: 8),
                                 Text(
-                                  '- 5,700.00 ฿',
+                                  Formatters.formatBaht(
+                                    -5700.00,
+                                    showSign: true,
+                                  ),
                                   style: TextStyle(
                                     color: Colors.red,
                                     fontWeight: FontWeight.bold,
@@ -240,7 +247,7 @@ class _ShopHomepageState extends State<ShopHomepage> {
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
         subtitle: Text(date, style: const TextStyle(color: Colors.black54)),
         trailing: Text(
-          '${isIncome ? '+' : '-'}${amount.abs().toStringAsFixed(2)} ฿',
+          Formatters.formatBaht(amount, showSign: true),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: isIncome ? Colors.green : Colors.red,

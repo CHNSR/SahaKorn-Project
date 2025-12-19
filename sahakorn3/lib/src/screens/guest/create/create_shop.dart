@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/models/shop.dart';
 import 'package:sahakorn3/src/services/firebase/shop/fire_shop_write_service.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
-import 'package:sahakorn3/src/widgets/shop_navbar.dart'; // added import
+import 'package:sahakorn3/src/widgets/shop_navbar.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class CreateShopScreen extends StatefulWidget {
   const CreateShopScreen({super.key});
@@ -172,12 +173,8 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
                         decoration: const InputDecoration(
                           labelText: 'Shop Name',
                         ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a shop name';
-                          }
-                          return null;
-                        },
+                        validator:
+                            (v) => Validators.validateRequired(v, 'Shop name'),
                       ),
                       const SizedBox(height: 16),
 
@@ -188,12 +185,9 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
                           labelText: 'Description',
                         ),
                         maxLines: 3,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter a description';
-                          }
-                          return null;
-                        },
+                        validator:
+                            (v) =>
+                                Validators.validateRequired(v, 'Description'),
                       ),
                       const SizedBox(height: 16),
 
@@ -202,12 +196,8 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
                         controller: _addressController,
                         decoration: const InputDecoration(labelText: 'Address'),
                         maxLines: 2,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Please enter an address';
-                          }
-                          return null;
-                        },
+                        validator:
+                            (v) => Validators.validateRequired(v, 'Address'),
                       ),
                       const SizedBox(height: 24),
 
