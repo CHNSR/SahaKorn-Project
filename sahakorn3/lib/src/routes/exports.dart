@@ -12,8 +12,8 @@ export 'package:sahakorn3/src/services/firebase/shop/fire_shop_read_service.dart
 export 'package:sahakorn3/src/screens/user/notification_screen.dart';
 
 // Routes and Create Screens
-export 'package:sahakorn3/src/screens/guest/create/create_customer.dart';
 export 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
+// export 'package:sahakorn3/src/screens/guest/create/create_customer.dart'; // Removed as file does not exist
 export 'package:sahakorn3/src/routes/routes.dart';
 
 // Auth Screens
@@ -32,3 +32,8 @@ export 'package:sahakorn3/src/widgets/customer_navbar.dart';
 export 'package:sahakorn3/src/widgets/shop_navbar.dart';
 
 // export 'package:sahakorn3/src/screens/intermediary/intermediary.dart'; // Removed as file does not exist
+//shop screens L2
+export 'package:sahakorn3/src/screens/user/shop/loan_management/giveloan.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/customers.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/repayment.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/history.dart';

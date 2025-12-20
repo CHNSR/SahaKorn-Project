@@ -182,25 +182,33 @@ class _ShopCreditState extends State<ShopCredit> {
                       icon: Icons.monetization_on,
                       color: Colors.blue,
                       label: 'Give Loan',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.giveLoan);
+                      },
                     ),
                     _buildActionCard(
                       icon: Icons.payment,
                       color: Colors.green,
                       label: 'Repayment',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.repayment);
+                      },
                     ),
                     _buildActionCard(
                       icon: Icons.people,
                       color: Colors.orange,
                       label: 'Customers',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.customers);
+                      },
                     ),
                     _buildActionCard(
                       icon: Icons.history,
                       color: Colors.purple,
                       label: 'History',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.pushNamed(context, Routes.history);
+                      },
                     ),
                   ],
                 ),
