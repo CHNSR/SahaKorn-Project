@@ -1,7 +1,8 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
-import 'package:sahakorn3/src/screens/user/shop/shop_transactionpage.dart';
+import 'package:intl/intl.dart';
 import 'package:sahakorn3/src/screens/user/shop/widgets/transaction_chart.dart';
+import 'package:sahakorn3/src/screens/user/shop/widgets/transaction_heatmap.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 
 class ShopHomepage extends StatefulWidget {
@@ -15,215 +16,30 @@ class _ShopHomepageState extends State<ShopHomepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor:
+          Colors.grey.shade50, // Light background for better contrast
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header (web-style)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dashboard',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[900],
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Overview of customers and shop transactions',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: Colors.green[700],
-                    child: const Icon(Icons.store, color: Colors.white),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
+              // Header
+              _buildHeader(),
+              const SizedBox(height: 24),
 
-              // Summary row
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Current Balance',
-                                  style: TextStyle(color: Colors.black54),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  Formatters.formatBaht(12300.00),
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  Formatters.formatBaht(
-                                    18000.00,
-                                    showSign: true,
-                                  ),
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  Formatters.formatBaht(
-                                    -5700.00,
-                                    showSign: true,
-                                  ),
-                                  style: TextStyle(
-                                    color: Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.add),
-                          label: const Text(
-                            'Add Stock',
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.qr_code_scanner),
-                          label: const Text('Scan QR'),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size.fromHeight(48),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
+              // Summary Cards
+              _buildSummarySection(),
+              const SizedBox(height: 24),
 
               // Transaction Chart
               const TransactionChart(),
+              const SizedBox(height: 24),
 
-              const SizedBox(height: 10),
+              // Transaction Heatmap
+              const TransactionHeatmap(),
 
-              // Recent transactions list
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Recent Transactions',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ShopTransaction(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'See All',
-                        style: TextStyle(color: Colors.black, fontSize: 16),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                children: [
-                  _recentTile('Shopping at Market', '24/08/2025', -250.50),
-                  _recentTile('Electricity Bill', '20/08/2025', -1200.00),
-                  _recentTile('Salary', '01/08/2025', 15000.00),
-                ],
-              ),
-
-              const SizedBox(height: 18),
-
-              // Heatmap (kept from original)
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 245, 222),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.black, width: 1),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: HeatMapCalendar(
-                    defaultColor: const Color.fromARGB(255, 255, 255, 255),
-                    flexible: true,
-                    colorMode: ColorMode.color,
-                    textColor: Colors.black,
-                    datasets: {
-                      DateTime(2025, 8, 1): 3,
-                      DateTime(2025, 8, 3): 7,
-                      DateTime(2025, 8, 6): 5,
-                      DateTime(2025, 8, 10): 10,
-                      DateTime(2025, 8, 12): 2,
-                      DateTime(2025, 8, 15): 8,
-                    },
-                    colorsets: const {
-                      1: Colors.green,
-                      3: Colors.greenAccent,
-                      5: Colors.orange,
-                      7: Colors.deepOrange,
-                      10: Colors.red,
-                    },
-                  ),
-                ),
-              ),
+              const SizedBox(height: 40), // Bottom padding
             ],
           ),
         ),
@@ -231,31 +47,254 @@ class _ShopHomepageState extends State<ShopHomepage> {
     );
   }
 
-  Widget _recentTile(String title, String date, double amount) {
-    final isIncome = amount > 0;
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isIncome ? Colors.green[100] : Colors.red[100],
-          child: Icon(
-            isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-            color: isIncome ? Colors.green : Colors.red,
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Dashboard',
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                color: Colors.grey.shade900,
+                letterSpacing: -1,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              DateFormat('EEEE, d MMMM yyyy').format(DateTime.now()),
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.indigo.shade600,
+            child: const Icon(
+              Icons.store_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
         ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(date, style: const TextStyle(color: Colors.black54)),
-        trailing: Text(
-          Formatters.formatBaht(amount, showSign: true),
+      ],
+    );
+  }
+
+  Widget _buildSummarySection() {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 3, child: _buildBalanceCard()),
+          const SizedBox(width: 16),
+          Expanded(flex: 2, child: _buildActionCard()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBalanceCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey.shade200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Credit Balance',
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Icon(
+                Icons.account_balance_wallet_outlined,
+                color: Colors.grey.shade400,
+                size: 18,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            Formatters.formatBaht(12300.00),
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: Colors.grey.shade900,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildMiniStat('IN', 18000.00, Colors.green),
+              const SizedBox(width: 16),
+              _buildMiniStat('OUT', 5700.00, Colors.red),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniStat(String label, double amount, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
           style: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 10,
             fontWeight: FontWeight.bold,
-            color: isIncome ? Colors.green : Colors.red,
           ),
         ),
-        onTap: () {
-          // placeholder: open transaction detail
-        },
+        const SizedBox(height: 2),
+        Text(
+          Formatters.formatBaht(amount, showSign: false),
+          style: TextStyle(
+            color: color.withOpacity(0.8),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionCard() {
+    return InkWell(
+      onTap: () {
+        Navigator.pushNamed(context, Routes.manageTotalCredit);
+      },
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Colors.indigo.shade600, Colors.blue.shade700],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.indigo.shade200,
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            PieChart(
+              PieChartData(
+                sectionsSpace: 0,
+                centerSpaceRadius: 40, // 80% scale
+                startDegreeOffset: -90,
+                sections: [
+                  // Remaining (Green/White)
+                  PieChartSectionData(
+                    color: Color(0xFFb5e48c),
+                    value: 12300,
+                    title: '',
+                    radius: 10,
+                    showTitle: false,
+                  ),
+                  // Used (Yellow)
+                  PieChartSectionData(
+                    color: Color(0xFFf4d35e),
+                    value: 5700,
+                    title: '',
+                    radius: 10,
+                    showTitle: false,
+                  ),
+                  //out date (Red)
+                  PieChartSectionData(
+                    color: Color(0xFFf95738),
+                    value: 500,
+                    title: '',
+                    radius: 10,
+                    showTitle: false,
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.settings,
+                    size: 16,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Manage',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.0,
+                  ),
+                ),
+                const Text(
+                  'Credit',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    height: 1.0,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

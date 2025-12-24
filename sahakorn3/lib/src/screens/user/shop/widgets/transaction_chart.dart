@@ -95,257 +95,309 @@ class _TransactionChartState extends State<TransactionChart> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with Title and Time Filter
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Transactions Trend',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    _buildFilterDropdown(),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                AspectRatio(
-                  aspectRatio: 1.5,
-                  child: LineChart(
-                    LineChartData(
-                      gridData: FlGridData(
-                        show: true,
-                        drawVerticalLine: false,
-                        horizontalInterval: _getInterval(),
-                        getDrawingHorizontalLine: (value) {
-                          return FlLine(
-                            color: Colors.grey.withValues(alpha: 0.1),
-                            strokeWidth: 1,
-                          );
-                        },
-                      ),
-                      titlesData: FlTitlesData(
-                        show: true,
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 30,
-                            interval: 1,
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              final index = value.toInt();
-                              final labels = _mockLabels[_selectedFilter]!;
-                              if (index >= 0 && index < labels.length) {
-                                if (_selectedFilter == 'Month' &&
-                                    index % 2 != 0) {
-                                  return const SizedBox();
-                                }
-                                return SideTitleWidget(
-                                  meta: meta,
-                                  child: Text(
-                                    labels[index],
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                );
-                              }
-                              return const SizedBox();
-                            },
-                          ),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            interval: _getInterval(),
-                            getTitlesWidget: (double value, TitleMeta meta) {
-                              return Text(
-                                _formatCurrency(value),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey,
-                                ),
-                                textAlign: TextAlign.left,
-                              );
-                            },
-                            reservedSize: 40,
-                          ),
-                        ),
-                      ),
-                      borderData: FlBorderData(
-                        show: true,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.grey.withValues(alpha: 0.2),
-                          ),
-                          left: BorderSide(
-                            color: Colors.grey.withValues(alpha: 0.2),
-                          ),
-                        ),
-                      ),
-                      minX: 0,
-                      maxX:
-                          (_mockData[_selectedFilter]![0].length - 1)
-                              .toDouble(),
-                      minY: 0,
-                      maxY: _getMaxY(),
-                      lineBarsData: [
-                        // Line 1: Total (Blue)
-                        if (_showTotal)
-                          _buildLineChartBarData(
-                            _mockData[_selectedFilter]![0],
-                            Colors.blue,
-                          ),
-                        // Line 2: Loan (Yellow)
-                        if (_showLoan)
-                          _buildLineChartBarData(
-                            _mockData[_selectedFilter]![1],
-                            Colors.amber,
-                          ),
-                        // Line 3: Cash (Green)
-                        if (_showCash)
-                          _buildLineChartBarData(
-                            _mockData[_selectedFilter]![2],
-                            Colors.green,
-                          ),
-                      ],
-                      lineTouchData: LineTouchData(
-                        touchTooltipData: LineTouchTooltipData(
-                          getTooltipColor: (touchedSpot) => Colors.blueGrey,
-                          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-                            return touchedBarSpots.map((barSpot) {
-                              final flSpot = barSpot;
-                              String label = '';
-                              // Map color to label since barIndex might change based on visibility
-                              if (barSpot.bar.color == Colors.blue)
-                                label = 'Total: ';
-                              if (barSpot.bar.color == Colors.amber)
-                                label = 'Loan: ';
-                              if (barSpot.bar.color == Colors.green)
-                                label = 'Cash: ';
-
-                              return LineTooltipItem(
-                                '$label${Formatters.formatBaht(flSpot.y)}',
-                                TextStyle(color: barSpot.bar.color),
-                              );
-                            }).toList();
-                          },
-                        ),
-                      ),
-                    ),
+                const Text(
+                  'Transactions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                 ),
+                _buildTimeFilter(),
               ],
             ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        _buildToggleButtons(),
-      ],
-    );
-  }
+            const SizedBox(height: 32),
 
-  Widget _buildFilterDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedFilter,
-          isDense: true,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          items:
-              ['Day', 'Month', 'Year'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(
-                    value,
-                    style: const TextStyle(fontWeight: FontWeight.w500),
+            // Chart
+            AspectRatio(
+              aspectRatio: 1.6,
+              child: LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: _getInterval(),
+                    getDrawingHorizontalLine: (value) {
+                      return FlLine(
+                        color: Colors.grey.withValues(alpha: 0.05),
+                        strokeWidth: 1,
+                      );
+                    },
                   ),
-                );
-              }).toList(),
-          onChanged: (newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedFilter = newValue;
-              });
-            }
-          },
+                  titlesData: FlTitlesData(
+                    show: true,
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 30,
+                        interval: 1,
+                        getTitlesWidget: (double value, TitleMeta meta) {
+                          final index = value.toInt();
+                          final labels = _mockLabels[_selectedFilter]!;
+                          if (index >= 0 && index < labels.length) {
+                            if (_selectedFilter == 'Month' && index % 2 != 0) {
+                              return const SizedBox();
+                            }
+                            return SideTitleWidget(
+                              meta: meta,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  labels[index],
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey.shade500,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox();
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        interval: _getInterval(),
+                        getTitlesWidget: (double value, TitleMeta meta) {
+                          return Text(
+                            _formatCurrency(value),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade400,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            textAlign: TextAlign.left,
+                          );
+                        },
+                        reservedSize: 40,
+                      ),
+                    ),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  minX: 0,
+                  maxX: (_mockData[_selectedFilter]![0].length - 1).toDouble(),
+                  minY: 0,
+                  maxY: _getMaxY(),
+                  lineBarsData: [
+                    if (_showTotal)
+                      _buildLineChartBarData(
+                        _mockData[_selectedFilter]![0],
+                        const Color(0xFF2196F3), // Professional Blue
+                        true,
+                      ),
+                    if (_showLoan)
+                      _buildLineChartBarData(
+                        _mockData[_selectedFilter]![1],
+                        const Color(0xFFFFC107), // Professional Amber
+                        false,
+                      ),
+                    if (_showCash)
+                      _buildLineChartBarData(
+                        _mockData[_selectedFilter]![2],
+                        const Color(0xFF4CAF50), // Professional Green
+                        false,
+                      ),
+                  ],
+                  lineTouchData: LineTouchData(
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor:
+                          (touchedSpot) => Colors.blueGrey.shade900,
+                      tooltipPadding: const EdgeInsets.all(8),
+
+                      getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+                        return touchedBarSpots.map((barSpot) {
+                          final flSpot = barSpot;
+                          String label = '';
+                          if (barSpot.bar.color == const Color(0xFF2196F3))
+                            label = 'Total';
+                          if (barSpot.bar.color == const Color(0xFFFFC107))
+                            label = 'Loan';
+                          if (barSpot.bar.color == const Color(0xFF4CAF50))
+                            label = 'Cash';
+
+                          return LineTooltipItem(
+                            '$label\n',
+                            const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            children: [
+                              TextSpan(
+                                text: Formatters.formatBaht(flSpot.y),
+                                style: TextStyle(
+                                  color: barSpot.bar.color,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Legend / Toggles
+            _buildLegend(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildToggleButtons() {
+  Widget _buildTimeFilter() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children:
+            ['Day', 'Month', 'Year'].map((filter) {
+              final isSelected = _selectedFilter == filter;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedFilter = filter),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(6),
+                    boxShadow:
+                        isSelected
+                            ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ]
+                            : null,
+                  ),
+                  child: Text(
+                    filter,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.black87 : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildLegend() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildToggleButton('Total', Colors.blue, _showTotal, (val) {
-          setState(() => _showTotal = val);
-        }),
-        const SizedBox(width: 12),
-        _buildToggleButton('Loan', Colors.amber, _showLoan, (val) {
-          setState(() => _showLoan = val);
-        }),
-        const SizedBox(width: 12),
-        _buildToggleButton('Cash', Colors.green, _showCash, (val) {
-          setState(() => _showCash = val);
-        }),
+        _buildLegendItem(
+          'Total',
+          const Color(0xFF2196F3),
+          _showTotal,
+          (val) => setState(() => _showTotal = !val),
+        ),
+        const SizedBox(width: 24),
+        _buildLegendItem(
+          'Loan',
+          const Color(0xFFFFC107),
+          _showLoan,
+          (val) => setState(() => _showLoan = !val),
+        ),
+        const SizedBox(width: 24),
+        _buildLegendItem(
+          'Cash',
+          const Color(0xFF4CAF50),
+          _showCash,
+          (val) => setState(() => _showCash = !val),
+        ),
       ],
     );
   }
 
-  Widget _buildToggleButton(
+  Widget _buildLegendItem(
     String label,
     Color color,
-    bool isSelected,
-    Function(bool) onChanged,
+    bool isVisible,
+    Function(bool) onTap,
   ) {
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
-          fontWeight: FontWeight.bold,
+    return InkWell(
+      onTap: () => onTap(isVisible),
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: isVisible ? color : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isVisible ? color : Colors.grey.shade400,
+                  width: 2,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isVisible ? Colors.grey.shade700 : Colors.grey.shade400,
+              ),
+            ),
+          ],
         ),
       ),
-      selected: isSelected,
-      onSelected: onChanged,
-      backgroundColor: Colors.grey[200],
-      selectedColor: color,
-      checkmarkColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? Colors.transparent : Colors.grey[300]!,
-        ),
-      ),
-      showCheckmark: false,
     );
   }
 
-  LineChartBarData _buildLineChartBarData(List<double> data, Color color) {
+  LineChartBarData _buildLineChartBarData(
+    List<double> data,
+    Color color,
+    bool isPrimary,
+  ) {
     return LineChartBarData(
       spots: List.generate(data.length, (index) {
         return FlSpot(index.toDouble(), data[index]);
@@ -354,8 +406,21 @@ class _TransactionChartState extends State<TransactionChart> {
       color: color,
       barWidth: 3,
       isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      belowBarData: BarAreaData(show: false),
+      dotData: FlDotData(
+        show: true,
+        getDotPainter: (spot, percent, barData, index) {
+          return FlDotCirclePainter(
+            radius: 4,
+            color: Colors.white,
+            strokeWidth: 2,
+            strokeColor: color,
+          );
+        },
+      ),
+      belowBarData: BarAreaData(
+        show: true,
+        color: color.withValues(alpha: 0.1),
+      ),
     );
   }
 

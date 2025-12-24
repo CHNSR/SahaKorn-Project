@@ -26,6 +26,7 @@ export 'package:sahakorn3/src/screens/user/shop/shop_transactionpage.dart';
 export 'package:sahakorn3/src/screens/user/shop/shop_loanpage.dart';
 export 'package:sahakorn3/src/screens/user/shop/shop_settingpage.dart';
 export 'package:sahakorn3/src/screens/user/shop/shop_qr_generate_page.dart';
+export 'package:sahakorn3/src/screens/user/shop/credit_management/manage_total_credit.dart';
 
 // Widgets / Navbars
 export 'package:sahakorn3/src/widgets/customer_navbar.dart';

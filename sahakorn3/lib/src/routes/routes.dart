@@ -17,6 +17,7 @@ class Routes {
   static const String customers = '/customers';
   static const String repayment = '/repayment';
   static const String history = '/history';
+  static const String manageTotalCredit = '/manage_total_credit';
 
   static Map<String, WidgetBuilder> getRoutes(BuildContext context) {
     return {
@@ -33,6 +34,7 @@ class Routes {
       customers: (context) => const CustomersScreen(),
       repayment: (context) => const RepaymentScreen(),
       history: (context) => const HistoryScreen(),
+      manageTotalCredit: (context) => const ManageTotalCredit(),
     };
   }
 }
