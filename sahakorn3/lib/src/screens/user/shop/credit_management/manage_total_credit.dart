@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/core/app_theme.dart';
 import 'package:sahakorn3/src/utils/formatters.dart';
 
 class ManageTotalCredit extends StatefulWidget {
@@ -66,239 +65,302 @@ class _ManageTotalCreditState extends State<ManageTotalCredit> {
   @override
   Widget build(BuildContext context) {
     double availableCredit = _totalCredit - _usedCredit;
-    // Prevent negative available credit visually
     if (availableCredit < 0) availableCredit = 0;
 
     return Scaffold(
+      backgroundColor: Colors.grey[50], // Professional background
       appBar: AppBar(
-        title: const Text('Credit Management'),
+        title: const Text(
+          'Credit Management',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Column(
           children: [
-            // Chart Section
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            // Analytics Card
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Credit Overview',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+              child: Column(
+                children: [
+                  const Text(
+                    'Portfolio Overview',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      height: 200,
-                      child: Stack(
-                        children: [
-                          PieChart(
-                            PieChartData(
-                              sectionsSpace: 4,
-                              centerSpaceRadius: 60,
-                              startDegreeOffset: -90,
-                              sections: [
-                                PieChartSectionData(
-                                  color: AppColors.primary,
-                                  value: availableCredit,
-                                  title:
-                                      '${((availableCredit / _totalCredit) * 100).toStringAsFixed(1)}%',
-                                  radius: 20,
-                                  titleStyle: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                  showTitle:
-                                      false, // Cleaner look without titles on donut
-                                ),
-                                PieChartSectionData(
-                                  color: Colors.redAccent,
-                                  value: _usedCredit,
-                                  title:
-                                      '${((_usedCredit / _totalCredit) * 100).toStringAsFixed(1)}%',
-                                  radius: 20,
-                                  showTitle: false,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text(
-                                  'Total Credit',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                Text(
-                                  Formatters.formatBaht(_totalCredit),
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Legend
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    height: 220,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        _buildLegendItem(
-                          color: AppColors.primary,
-                          label: 'Available',
-                          value: availableCredit,
+                        PieChart(
+                          PieChartData(
+                            sectionsSpace: 0,
+                            centerSpaceRadius: 70,
+                            startDegreeOffset: -90,
+                            sections: [
+                              PieChartSectionData(
+                                color: const Color(0xFF185a9d), // Deep Indigo
+                                value: availableCredit,
+                                radius: 25,
+                                showTitle: false,
+                              ),
+                              PieChartSectionData(
+                                color: const Color(0xFFff5252), // Soft Red
+                                value: _usedCredit,
+                                radius: 25,
+                                showTitle: false,
+                              ),
+                            ],
+                          ),
                         ),
-                        _buildLegendItem(
-                          color: Colors.redAccent,
-                          label: 'Used',
-                          value: _usedCredit,
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Total',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              Formatters.formatBaht(_totalCredit),
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildLegendItem(
+                        color: const Color(0xFF185a9d),
+                        label: 'Available',
+                        value: availableCredit,
+                      ),
+                      const SizedBox(width: 40),
+                      _buildLegendItem(
+                        color: const Color(0xFFff5252), // Soft Red
+                        label: 'Used',
+                        value: _usedCredit,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-
             const SizedBox(height: 24),
 
-            // Manage Credit Limit Section
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            // Management Action Card
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Modify Credit Limit',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Custom Segmented Control
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
                       children: [
-                        const Text(
-                          'Manage Credit',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        _buildSegmentButton(
+                          'Add',
+                          isActive: _transactionType == 'Add',
+                          color: const Color(0xFF4caf50),
                         ),
-                        // Dropdown for selecting action
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[300]!),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _transactionType,
-                              isDense: true,
-                              items:
-                                  ['Add', 'Reduce'].map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(
-                                        value,
-                                        style: TextStyle(
-                                          color:
-                                              value == 'Add'
-                                                  ? Colors.green
-                                                  : Colors.red,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                              onChanged: (newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    _transactionType = newValue;
-                                    _creditController.clear();
-                                  });
-                                }
-                              },
-                            ),
-                          ),
+                        _buildSegmentButton(
+                          'Reduce',
+                          isActive: _transactionType == 'Reduce',
+                          color: const Color(0xFFff5252),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: _creditController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Amount',
-                        hintText:
-                            _transactionType == 'Add'
-                                ? 'Enter amount to add'
-                                : 'Enter amount to reduce',
-                        prefixIcon: const Icon(Icons.attach_money),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Amount Input
+                  TextFormField(
+                    controller: _creditController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _manageCredit,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'Amount',
+                      hintText: '0.00',
+                      suffixText: 'THB',
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 16,
+                      ),
+                      prefixIcon: Icon(
+                        _transactionType == 'Add'
+                            ? Icons.add_circle_outline
+                            : Icons.remove_circle_outline,
+                        color: Colors.grey[500],
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(
+                          color:
                               _transactionType == 'Add'
-                                  ? AppColors.primary
-                                  : Colors.redAccent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: Text(
-                          _transactionType == 'Add'
-                              ? 'Add Credit'
-                              : 'Reduce Credit',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                                  ? const Color(0xFF4caf50)
+                                  : const Color(0xFFff5252),
+                          width: 1.5,
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // Action Button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _manageCredit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            _transactionType == 'Add'
+                                ? const Color(0xFF4caf50)
+                                : const Color(0xFFff5252),
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shadowColor: (_transactionType == 'Add'
+                                ? const Color(0xFF4caf50)
+                                : const Color(0xFFff5252))
+                            .withOpacity(0.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Text(
+                        _transactionType == 'Add'
+                            ? 'Increase Limit'
+                            : 'Reduce Limit',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSegmentButton(
+    String label, {
+    required bool isActive,
+    required Color color,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _transactionType = label;
+            _creditController.clear();
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isActive ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow:
+                isActive
+                    ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : [],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: isActive ? color : Colors.grey[600],
+            ),
+          ),
         ),
       ),
     );

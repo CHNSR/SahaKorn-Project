@@ -18,6 +18,8 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
   final _shopNameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _addressController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   String _status = 'active';
   bool _isLoading = false;
@@ -29,6 +31,8 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
     _shopNameController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -56,7 +60,8 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
       'address': _addressController.text.trim(),
       'status': _status,
       'ownerId': ownerId,
-      'phone': '', // optional - not in form
+      'email': _emailController.text.trim(),
+      'phone': _phoneController.text.trim(),
     };
 
     try {
@@ -66,7 +71,8 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
         name: shopData['name'] as String,
         address: shopData['address'] as String,
         ownerId: shopData['ownerId'] as String,
-        phone: '', // optional - not in form
+        phone: shopData['phone'] as String,
+        email: shopData['email'] as String,
         description: shopData['description'] as String,
         logo: shopData['logo'] as String,
         status: shopData['status'] as String,
@@ -112,156 +118,280 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
     }
   }
 
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      alignLabelWithHint: true,
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      prefixIcon: Icon(icon, color: Colors.indigo.shade300, size: 20),
+      labelStyle: TextStyle(
+        color:
+            Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[400]
+                : Colors.grey[600],
+        fontSize: 14,
+      ),
+      filled: true,
+      fillColor: Theme.of(context).cardColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[700]!
+                  : Colors.grey[200]!,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[600]!
+                  : Colors.grey[300]!,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.indigo, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFb8c1ec),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Create New Shop',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
         ),
-        backgroundColor: const Color(0xFF1E293B),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        iconTheme: IconThemeData(
+          color: Theme.of(context).textTheme.bodyLarge?.color,
+        ),
         actions: [
           TextButton(
             onPressed: () {
-              // Skip straight to NavbarShop and remove all previous routes
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const NavbarShop()),
                 (route) => false,
               );
             },
-            child: const Text('Skip', style: TextStyle(color: Colors.white)),
+            child: Text(
+              'Skip',
+              style: TextStyle(color: Colors.indigo.shade400, fontSize: 14),
+            ),
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-                side: const BorderSide(color: Color(0xFF232946), width: 2),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Let\'s setup your shop',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
               ),
-              margin: const EdgeInsets.symmetric(vertical: 8),
-              color: const Color(0xFFfffffe),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Title inside card
-                      const Padding(
-                        padding: EdgeInsets.only(bottom: 8.0),
-                        child: Text(
-                          'Shop Details',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+              const SizedBox(height: 8),
+              Text(
+                'Fill in the details below to create your professional shop presence.',
+                style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+              ),
+              const SizedBox(height: 32),
+              Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: _shopNameController,
+                      decoration: _buildInputDecoration(
+                        label: 'Shop Name',
+                        icon: Icons.store_mall_directory_outlined,
+                      ),
+                      validator:
+                          (v) => Validators.validateRequired(v, 'Shop name'),
+                    ),
+
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: _buildInputDecoration(
+                        label: 'Email',
+                        icon: Icons.email_outlined,
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => Validators.validateEmail(v),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: _buildInputDecoration(
+                        label: 'Telephone',
+                        icon: Icons.phone_outlined,
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (v) => Validators.validateRequired(v, 'Phone'),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: _buildInputDecoration(
+                        label: 'Description',
+                        icon: Icons.description_outlined,
+                      ),
+                      maxLines: 3,
+                      validator:
+                          (v) => Validators.validateRequired(v, 'Description'),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: _buildInputDecoration(
+                        label: 'Address',
+                        icon: Icons.location_on_outlined,
+                      ),
+                      maxLines: 2,
+                      validator:
+                          (v) => Validators.validateRequired(v, 'Address'),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Logo Picker (Custom Design)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        border: Border.all(
+                          color:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[700]!
+                                  : Colors.grey.shade300,
                         ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-
-                      // Shop Name
-                      TextFormField(
-                        controller: _shopNameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Shop Name',
-                        ),
-                        validator:
-                            (v) => Validators.validateRequired(v, 'Shop name'),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Description
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Description',
-                        ),
-                        maxLines: 3,
-                        validator:
-                            (v) =>
-                                Validators.validateRequired(v, 'Description'),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Address
-                      TextFormField(
-                        controller: _addressController,
-                        decoration: const InputDecoration(labelText: 'Address'),
-                        maxLines: 2,
-                        validator:
-                            (v) => Validators.validateRequired(v, 'Address'),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Logo Picker
-                      Row(
+                      child: Row(
                         children: [
-                          OutlinedButton.icon(
-                            onPressed: _pickLogo,
-                            icon: const Icon(Icons.image),
-                            label: const Text('Upload Logo'),
-                          ),
-                          const SizedBox(width: 10),
-                          if (_logoFileName != null)
-                            Expanded(
-                              child: Text(
-                                _logoFileName!,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                          Container(
+                            height: 48,
+                            width: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.indigo.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
                             ),
+                            child:
+                                _logoFileName != null
+                                    ? const Icon(
+                                      Icons.check,
+                                      color: Colors.indigo,
+                                    )
+                                    : const Icon(
+                                      Icons.image_outlined,
+                                      color: Colors.indigo,
+                                    ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Shop Logo',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[800],
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _logoFileName ?? 'Upload a logo image',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _pickLogo,
+                            child: const Text('Upload'),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                    ),
 
-                      // Status
-                      DropdownButtonFormField<String>(
-                        value: _status,
-                        decoration: const InputDecoration(labelText: 'Status'),
-                        items:
-                            ['active', 'deactivate']
-                                .map(
-                                  (label) => DropdownMenuItem(
-                                    value: label,
-                                    child: Text(label),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() => _status = value);
-                          }
-                        },
+                    const SizedBox(height: 20),
+
+                    // Status Dropdown
+                    DropdownButtonFormField<String>(
+                      value: _status,
+                      dropdownColor: Theme.of(context).cardColor,
+                      decoration: _buildInputDecoration(
+                        label: 'Status',
+                        icon: Icons.toggle_on_outlined,
                       ),
-                      const SizedBox(height: 32),
+                      items:
+                          ['active', 'deactivate']
+                              .map(
+                                (label) => DropdownMenuItem(
+                                  value: label,
+                                  child: Text(label),
+                                ),
+                              )
+                              .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() => _status = value);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 48),
 
-                      // Submit Button
-                      ElevatedButton(
+                    // Submit Button
+                    SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
                         onPressed: _isLoading ? null : _submitForm,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: const Color(0xFFeebbc3),
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(
-                              color: Color(0xFF121629),
-                              width: 2,
-                            ),
                           ),
+                          padding: const EdgeInsets.symmetric(vertical: 0),
                         ),
                         child:
                             _isLoading
                                 ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
+                                  height: 24,
+                                  width: 24,
                                   child: CircularProgressIndicator(
+                                    color: Colors.white,
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -270,15 +400,15 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF121629),
                                   ),
                                 ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),

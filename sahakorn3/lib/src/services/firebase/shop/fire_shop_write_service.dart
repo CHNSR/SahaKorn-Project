@@ -6,12 +6,17 @@ class FireShopWriteService {
 
   Future<String?> createShop(Shop shop) async {
     try {
-      final doc = await _firestore.collection('shops').add({
+      // Generate the ID locally first
+      final docRef = _firestore.collection('shops').doc();
+
+      await docRef.set({
         ...shop.toMap(),
+        'id': docRef.id, // Save the ID in the document
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
-      return doc.id;
+
+      return docRef.id;
     } on FirebaseException catch (e) {
       return Future.error(e.message ?? e.code);
     } catch (e) {

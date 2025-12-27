@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/models/transaction.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
+import 'package:intl/intl.dart';
 
 class ShopTransaction extends StatefulWidget {
   const ShopTransaction({super.key});
@@ -9,32 +12,7 @@ class ShopTransaction extends StatefulWidget {
 }
 
 class _ShopTransactionState extends State<ShopTransaction> {
-  final List<TransactionItem> _transactions = [
-    TransactionItem(
-      title: 'Shopping at Market',
-      date: DateTime(2025, 8, 24),
-      amount: -250.50,
-      category: 'Groceries',
-    ),
-    TransactionItem(
-      title: 'Electricity Bill',
-      date: DateTime(2025, 8, 20),
-      amount: -1200.00,
-      category: 'Utilities',
-    ),
-    TransactionItem(
-      title: 'Salary',
-      date: DateTime(2025, 8, 1),
-      amount: 15000.00,
-      category: 'Income',
-    ),
-    TransactionItem(
-      title: 'Sold old bike',
-      date: DateTime(2025, 7, 28),
-      amount: 1200.00,
-      category: 'Income',
-    ),
-  ];
+  final TransactionRepository _repository = TransactionRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +23,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
           children: [
             _buildHeader(),
             const SizedBox(height: 10),
-            _buildCardsSection(),
+            _buildShopNameCards(),
             const SizedBox(height: 20),
             Expanded(child: _buildTransactionList()),
           ],
@@ -88,8 +66,9 @@ class _ShopTransactionState extends State<ShopTransaction> {
             ],
           ),
           const SizedBox(height: 4),
+          // Placeholder for visual balance - in real app could be sum of fetched tx
           Text(
-            Formatters.formatBaht(18500.25),
+            Formatters.formatBaht(0.00),
             style: const TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
@@ -101,7 +80,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
     );
   }
 
-  Widget _buildCardsSection() {
+  Widget _buildShopNameCards() {
     return SizedBox(
       height: 200,
       child: ListView(
@@ -113,15 +92,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
             balance: 15000.00,
             cardNumber: '**** **** **** 4265',
             expiry: '12/26',
-            holder: 'Linda Thompson',
-          ),
-          const SizedBox(width: 16),
-          _buildCreditCard(
-            color: const [Color(0xFFee9ca7), Color(0xFFffdde1)],
-            balance: 3500.25,
-            cardNumber: '**** **** **** 8899',
-            expiry: '09/25',
-            holder: 'Linda Thompson',
+            holder: 'SAHAKORN SHOP',
           ),
         ],
       ),
@@ -136,7 +107,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
     required String holder,
   }) {
     return Container(
-      width: 320,
+      width: MediaQuery.of(context).size.width - 40,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -161,7 +132,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'CARDNAME',
+                'SHOP NAME',
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.8),
                   fontSize: 12,
@@ -236,7 +207,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
   Widget _buildTransactionList() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50], // Slightly different shade for list
+        color: Colors.grey[50],
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -244,99 +215,130 @@ class _ShopTransactionState extends State<ShopTransaction> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 24),
-          const Text(
-            'Recent Transactions',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Recent Transactions',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh),
+                onPressed: () => setState(() {}), // Simple refresh
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.separated(
-              itemCount: _transactions.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final t = _transactions[index];
-                final isIncome = t.amount > 0;
-                return Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color:
-                              isIncome
-                                  ? Colors.green.withOpacity(0.1)
-                                  : Colors.red.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          isIncome
-                              ? Icons.arrow_downward
-                              : Icons.shopping_bag_outlined,
-                          color: isIncome ? Colors.green : Colors.redAccent,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t.title,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              t.category,
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            Formatters.formatBaht(t.amount, showSign: true),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: isIncome ? Colors.green : Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDate(t.date),
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 12,
-                            ),
+            child: FutureBuilder<List<AppTransaction>>(
+              future: _repository.listAll(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                final transactions = snapshot.data ?? [];
+
+                if (transactions.isEmpty) {
+                  return const Center(child: Text('No transactions found.'));
+                }
+
+                return ListView.separated(
+                  itemCount: transactions.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final t = transactions[index];
+                    // Logic to visualize incoming/outgoing based on payment method or just mock assumption for shop
+                    // Assuming all shop records are 'Income' or sales for now, unless specified.
+                    // But if it's a loan, maybe it's outgoing? Let's assume positive for sales.
+
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              t.paymentMethod == 'Loan'
+                                  ? Icons.credit_score
+                                  : Icons.payments_outlined,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  t.detail ?? 'Transaction',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  t.paymentMethod,
+                                  style: TextStyle(
+                                    color: Colors.grey[500],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                Formatters.formatBaht(
+                                  t.totalAmount,
+                                  showSign: true,
+                                ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _formatDate(t.createdAt ?? DateTime.now()),
+                                style: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -347,20 +349,6 @@ class _ShopTransactionState extends State<ShopTransaction> {
   }
 
   String _formatDate(DateTime d) {
-    return '${d.day}/${d.month}';
+    return DateFormat('dd/MM HH:mm').format(d);
   }
-}
-
-class TransactionItem {
-  final String title;
-  final DateTime date;
-  final double amount;
-  final String category;
-
-  TransactionItem({
-    required this.title,
-    required this.date,
-    required this.amount,
-    required this.category,
-  });
 }

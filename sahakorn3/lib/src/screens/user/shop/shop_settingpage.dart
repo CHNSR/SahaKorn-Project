@@ -4,6 +4,11 @@ import 'package:sahakorn3/src/providers/theme_provider.dart';
 import 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/screens/user/shop/edit_profile/edit_personal_profile.dart';
+import 'package:sahakorn3/src/screens/user/shop/edit_profile/edit_shop_profile.dart';
+
+import 'package:sahakorn3/src/screens/user/shop/changepassword/change_password.dart';
+import 'package:sahakorn3/src/screens/user/shop/support/help_support.dart';
 
 class ShopSettingpage extends StatefulWidget {
   const ShopSettingpage({super.key});
@@ -19,19 +24,19 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Settings',
                 style: TextStyle(
                   fontSize: 34,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                 ),
               ),
               const SizedBox(height: 24),
@@ -43,9 +48,15 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                   _buildSettingItem(
                     icon: Icons.person,
                     iconColor: Colors.blueAccent,
-                    title: 'Edit Profile',
+                    title: 'Edit Shop Profile',
                     subtitle: 'Name, phone, shop info',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const EditShopProfileScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildDivider(),
                   _buildSettingItem(
@@ -65,7 +76,13 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     icon: Icons.lock,
                     iconColor: Colors.orange,
                     title: 'Change Password',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ChangePasswordScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildDivider(),
                   SwitchListTile(
@@ -160,9 +177,15 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                   _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.help_outline,
-                    iconColor: Colors.blueGrey,
+                    iconColor: Colors.teal,
                     title: 'Help & Support',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const HelpSupportScreen(),
+                        ),
+                      );
+                    },
                   ),
                   _buildDivider(),
                   const LogoutListTile(), // Custom widget, assuming it fits or needs check
@@ -188,7 +211,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -212,11 +235,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
               children: [
                 const Text(
                   'My Shop Profile',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -229,13 +248,22 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
           ),
           Container(
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color:
+                  Theme.of(context).brightness == Brightness.dark
+                      ? Colors.grey[800]
+                      : Colors.grey[100],
               borderRadius: BorderRadius.circular(8),
             ),
             child: IconButton(
               icon: const Icon(Icons.edit, size: 20),
-              color: Colors.black54,
-              onPressed: () {},
+              color: Theme.of(context).iconTheme.color,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const EditPersonalProfileScreen(),
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -261,7 +289,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
   Widget _buildSectionContainer({required List<Widget> children}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(

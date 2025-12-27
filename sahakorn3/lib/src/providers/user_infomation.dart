@@ -30,6 +30,8 @@ class UserInformationProvider extends ChangeNotifier {
   String? get uid => _firebaseUser?.uid;
   String? get email => _firebaseUser?.email;
   String? get displayName => _profile?['name'] ?? _firebaseUser?.displayName;
+  String? get surname => _profile?['surname'];
+  String? get contactEmail => _profile?['email'] ?? _firebaseUser?.email;
   String? get phone => _profile?['phone'];
   String? get role => _profile?['user_level'];
 
@@ -61,7 +63,10 @@ class UserInformationProvider extends ChangeNotifier {
     if (uidLocal == null) return 'No authenticated user';
     try {
       _setLoading(true);
-      await _firestore.collection('users').doc(uidLocal).set(data, SetOptions(merge: true));
+      await _firestore
+          .collection('users')
+          .doc(uidLocal)
+          .set(data, SetOptions(merge: true));
       // refresh local copy
       _profile = {...?_profile, ...data};
       notifyListeners();
@@ -90,7 +95,9 @@ class UserInformationProvider extends ChangeNotifier {
 
   // Debug helper: prints current auth and profile info
   void _debugPrintUser() {
-    debugPrint('UserInformationProvider: uid=${_firebaseUser?.uid ?? "null"}, email=${_firebaseUser?.email ?? "null"}');
+    debugPrint(
+      'UserInformationProvider: uid=${_firebaseUser?.uid ?? "null"}, email=${_firebaseUser?.email ?? "null"}',
+    );
     debugPrint('UserInformationProvider: profile=${_profile ?? "null"}');
   }
 }
