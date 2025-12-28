@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/providers/user_infomation.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +18,17 @@ class _NavbarShopState extends State<NavbarShop> {
   int _selectedIndex = 0;
   bool creadit = false;
   final controller = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uid = context.read<UserInformationProvider>().uid;
+      if (uid != null) {
+        context.read<ShopProvider>().loadShops(uid);
+      }
+    });
+  }
 
   // 2. ตรวจสอบให้แน่ใจว่า List นี้เรียกใช้หน้าจอของ Shop ทั้งหมด
 

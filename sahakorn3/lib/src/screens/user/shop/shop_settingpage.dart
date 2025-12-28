@@ -4,8 +4,11 @@ import 'package:sahakorn3/src/providers/theme_provider.dart';
 import 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+
 import 'package:sahakorn3/src/screens/user/shop/edit_profile/edit_personal_profile.dart';
 import 'package:sahakorn3/src/screens/user/shop/edit_profile/edit_shop_profile.dart';
+import 'package:sahakorn3/src/screens/user/shop/switch_shop/switch_shop.dart';
 
 import 'package:sahakorn3/src/screens/user/shop/changepassword/change_password.dart';
 import 'package:sahakorn3/src/screens/user/shop/support/help_support.dart';
@@ -55,6 +58,24 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                         MaterialPageRoute(
                           builder: (_) => const EditShopProfileScreen(),
                         ),
+                      );
+                    },
+                  ),
+                  _buildDivider(),
+                  Consumer<ShopProvider>(
+                    builder: (context, provider, _) {
+                      return _buildSettingItem(
+                        icon: Icons.store_mall_directory,
+                        iconColor: Colors.purple,
+                        title: 'Switch Shop',
+                        subtitle: provider.currentShop?.name ?? 'Select Shop',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const SwitchShopScreen(),
+                            ),
+                          );
+                        },
                       );
                     },
                   ),

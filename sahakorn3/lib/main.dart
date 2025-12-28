@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:sahakorn3/firebase_options.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
 import 'package:sahakorn3/src/routes/routes.dart';
 
 void main() async {
@@ -14,12 +15,13 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UserInformationProvider()),
+        ChangeNotifierProvider(create: (_) => ShopProvider()),
       ],
       child: const MyApp(),
     ),
   );
 }
- 
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 

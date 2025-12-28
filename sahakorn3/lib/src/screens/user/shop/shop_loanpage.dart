@@ -36,6 +36,8 @@ class _ShopCreditState extends State<ShopCredit> {
               _buildSectionTitle('Analytics'),
               const SizedBox(height: 10),
               const LoanUsageChart(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Deptor'),
               const SizedBox(height: 40),
             ],
           ),

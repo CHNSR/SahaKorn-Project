@@ -1,9 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
 import 'package:sahakorn3/src/screens/user/shop/widgets/transaction_chart.dart';
 import 'package:sahakorn3/src/screens/user/shop/widgets/transaction_heatmap.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
 
 class ShopHomepage extends StatefulWidget {
   const ShopHomepage({super.key});
@@ -13,6 +16,15 @@ class ShopHomepage extends StatefulWidget {
 }
 
 class _ShopHomepageState extends State<ShopHomepage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load mock data for demonstration as requested
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ShopProvider>().loadMockShops();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
