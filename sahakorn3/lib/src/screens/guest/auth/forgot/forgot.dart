@@ -29,8 +29,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Password reset link sent to your email!')),
     );
-    setState(() => _loading = false);
-    // TODO: Navigate back to login screen after showing success message
+    Navigator.of(context).pop();
   }
 
   @override
@@ -48,7 +47,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 4,
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -59,9 +60,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const SizedBox(height: 8),
-                        const Text('Reset your password', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Reset your password',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        const Text('Enter your email to receive a password reset link', style: TextStyle(color: Colors.black54)),
+                        const Text(
+                          'Enter your email to receive a password reset link',
+                          style: TextStyle(color: Colors.black54),
+                        ),
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _emailCtrl,
@@ -71,7 +81,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             prefixIcon: Icon(Icons.email_outlined),
                           ),
                           validator: (v) {
-                            if (v == null || v.trim().isEmpty) return 'Enter email';
+                            if (v == null || v.trim().isEmpty)
+                              return 'Enter email';
                             if (!v.contains('@')) return 'Enter a valid email';
                             return null;
                           },
@@ -81,19 +92,32 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           height: 48,
                           child: ElevatedButton(
                             onPressed: _loading ? null : _submit,
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E293B)),
-                            child: _loading
-                                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                : const Text('Send Reset Link'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF1E293B),
+                            ),
+                            child:
+                                _loading
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : const Text('Send Reset Link'),
                           ),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            TextButton(onPressed: () {
-                              Navigator.of(context).pop(); // Go back to login
-                            }, child: const Text('Back to Sign in')),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Go back to login
+                              },
+                              child: const Text('Back to Sign in'),
+                            ),
                           ],
                         ),
                       ],

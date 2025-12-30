@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/models/transaction.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
-import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
-import 'package:sahakorn3/src/utils/formatters.dart';
 import 'package:intl/intl.dart';
-import 'transaction/digital_recept.dart';
-import 'transaction/advance_search.dart';
-import 'transaction/export_transaction.dart';
 
 class ShopTransaction extends StatefulWidget {
   const ShopTransaction({super.key});
@@ -20,12 +14,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
   // SearchCriteria? _currentCriteria; // Removed as Search is now standalone
 
   void _openAdvanceSearch() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AdvanceSearch(repository: _repository),
-      ),
-    );
+    Navigator.pushNamed(context, Routes.advanceSearch, arguments: _repository);
   }
 
   // void _clearSearch() {
@@ -225,11 +214,10 @@ class _ShopTransactionState extends State<ShopTransaction> {
                   Icons.swap_horiz,
                   'Export',
                   onTap: () {
-                    Navigator.push(
+                    Navigator.pushNamed(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const ExportTransaction(),
-                      ),
+                      Routes.exportTransaction,
+                      arguments: _repository,
                     );
                   },
                 ),
@@ -238,12 +226,7 @@ class _ShopTransactionState extends State<ShopTransaction> {
                   Icons.receipt,
                   'Recept',
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DigitalReceipt(),
-                      ),
-                    );
+                    Navigator.pushNamed(context, Routes.digitalReceipt);
                   },
                 ),
               ],

@@ -4,7 +4,8 @@ import '../../../../models/transaction.dart';
 import '../../../../services/firebase/transaction/transaction_repository.dart';
 import '../../../../utils/formatters.dart';
 import 'package:intl/intl.dart';
-import 'config_transaction.dart';
+import '../../../../routes/exports.dart';
+import '../../../../routes/routes.dart';
 
 class AdvanceSearch extends StatefulWidget {
   final TransactionRepository repository;
@@ -323,15 +324,10 @@ class _AdvanceSearchState extends State<AdvanceSearch> {
   Widget _buildTransactionCard(AppTransaction t) {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
+        final result = await Navigator.pushNamed(
           context,
-          MaterialPageRoute(
-            builder:
-                (context) => ConfigTransaction(
-                  transaction: t,
-                  repository: widget.repository,
-                ),
-          ),
+          Routes.configTransaction,
+          arguments: t,
         );
         if (result == true) {
           _performSearch(); // Refresh list if edited/deleted

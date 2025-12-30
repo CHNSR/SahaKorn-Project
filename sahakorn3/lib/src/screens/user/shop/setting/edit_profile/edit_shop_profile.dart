@@ -216,9 +216,7 @@ class _EditShopProfileScreenState extends State<EditShopProfileScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const CreateShopScreen()),
-                  );
+                  Navigator.of(context).pushNamed(Routes.createShop);
                 },
                 child: const Text('Create a Shop'),
               ),

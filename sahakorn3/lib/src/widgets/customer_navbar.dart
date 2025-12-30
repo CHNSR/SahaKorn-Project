@@ -83,12 +83,9 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
 
                       // 3. สั่งให้แอปเริ่มต้นใหม่จาก Root widget
                       // นี่จะทำให้ StreamBuilder ใน main.dart ทำงานอีกครั้งและสร้าง NavbarShop ที่ถูกต้อง
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (context) => const AuthGate(),
-                        ),
-                        (route) => false,
-                      );
+                      Navigator.of(
+                        context,
+                      ).pushNamedAndRemoveUntil(Routes.root, (route) => false);
                     },
                   );
                 }
@@ -154,9 +151,7 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
       //creadit buttom
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (context) => const CustomerPay()));
+          Navigator.of(context).pushNamed(Routes.customerPay);
           setState(() {
             paying = !paying;
           });

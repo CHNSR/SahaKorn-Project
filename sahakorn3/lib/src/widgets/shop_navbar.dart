@@ -90,11 +90,9 @@ class _NavbarShopState extends State<NavbarShop> {
                 // 2. แค่สลับ Role ใน SharedPreferences
                 await prefs.setString('user_role', 'customer');
 
-                // 3. สั่งให้แอปเริ่มต้นใหม่จาก Root widget
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const AuthGate()),
-                  (route) => false,
-                );
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil(Routes.root, (route) => false);
               },
             ),
           ],
@@ -158,9 +156,7 @@ class _NavbarShopState extends State<NavbarShop> {
       //creadit buttom
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const ShopQrGeneratePage()),
-          );
+          Navigator.of(context).pushNamed(Routes.shopQrGenerate);
           setState(() {
             creadit = !creadit;
           });

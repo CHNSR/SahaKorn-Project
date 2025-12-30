@@ -1,15 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sahakorn3/src/providers/theme_provider.dart';
-import 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
-import 'package:sahakorn3/src/screens/user/shop/setting/switch_shop/switch_shop.dart';
-import 'package:sahakorn3/src/widgets/logout_list_title.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
-import 'package:sahakorn3/src/screens/user/shop/setting/edit_profile/edit_personal_profile.dart';
-import 'package:sahakorn3/src/screens/user/shop/setting/edit_profile/edit_shop_profile.dart';
-import 'package:sahakorn3/src/screens/user/shop/setting/changepassword/change_password.dart';
-import 'package:sahakorn3/src/screens/user/shop/setting/support/help_support.dart';
+import 'package:sahakorn3/src/providers/theme_provider.dart';
+import 'package:sahakorn3/src/routes/routes.dart';
+import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 
 class ShopSettingpage extends StatefulWidget {
   const ShopSettingpage({super.key});
@@ -52,11 +47,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     title: 'Edit Shop Profile',
                     subtitle: 'Name, phone, shop info',
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const EditShopProfileScreen(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, Routes.editShopProfile);
                     },
                   ),
                   _buildDivider(),
@@ -68,11 +59,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                         title: 'Switch Shop',
                         subtitle: provider.currentShop?.name ?? 'Select Shop',
                         onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const SwitchShopScreen(),
-                            ),
-                          );
+                          Navigator.pushNamed(context, Routes.switchShop);
                         },
                       );
                     },
@@ -96,11 +83,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     iconColor: Colors.orange,
                     title: 'Change Password',
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ChangePasswordScreen(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, Routes.changePassword);
                     },
                   ),
                   _buildDivider(),
@@ -114,7 +97,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                       ),
                     ),
                     value: _biometrics,
-                    activeColor: Colors.green,
+                    activeTrackColor: Colors.green,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 4,
@@ -135,7 +118,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                       ),
                     ),
                     value: _notification,
-                    activeColor: Colors.green,
+                    activeTrackColor: Colors.green,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 4,
@@ -155,7 +138,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                           ),
                         ),
                         value: theme.isDark,
-                        activeColor: Colors.green,
+                        activeTrackColor: Colors.green,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 4,
@@ -186,11 +169,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     iconColor: Colors.indigo,
                     title: 'Create Shop',
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const CreateShopScreen(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, Routes.createShop);
                     },
                   ),
                   _buildDivider(),
@@ -199,11 +178,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                     iconColor: Colors.teal,
                     title: 'Help & Support',
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const HelpSupportScreen(),
-                        ),
-                      );
+                      Navigator.pushNamed(context, Routes.helpSupport);
                     },
                   ),
                   _buildDivider(),
@@ -234,7 +209,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -277,11 +252,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
               icon: const Icon(Icons.edit, size: 20),
               color: Theme.of(context).iconTheme.color,
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const EditPersonalProfileScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, Routes.editPersonalProfile);
               },
             ),
           ),
@@ -312,7 +283,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -355,7 +326,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, color: color, size: 22),

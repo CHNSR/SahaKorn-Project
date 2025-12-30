@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/models/shop.dart';
 import 'package:sahakorn3/src/services/firebase/shop/fire_shop_write_service.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
-import 'package:sahakorn3/src/widgets/shop_navbar.dart';
+
 import 'package:sahakorn3/src/routes/exports.dart';
 
 class CreateShopScreen extends StatefulWidget {
@@ -89,10 +89,9 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const NavbarShop()),
-          (route) => false,
-        );
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil(Routes.shopHome, (route) => false);
       } else {
         // unexpected return
         if (!mounted) return;
@@ -184,10 +183,9 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const NavbarShop()),
-                (route) => false,
-              );
+              Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(Routes.shopHome, (route) => false);
             },
             child: Text(
               'Skip',
