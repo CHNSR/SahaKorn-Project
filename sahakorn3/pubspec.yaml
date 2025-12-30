@@ -51,6 +51,10 @@ dependencies:
   firebase_auth: ^6.1.2
   intl: ^0.20.2
   logger: ^2.6.2
+  hive_ce_flutter: ^2.3.3
+  csv: ^6.0.0
+  share_plus: ^12.0.1
+  path_provider: ^2.1.5
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
 import 'package:sahakorn3/src/screens/guest/create/create_shop.dart';
+import 'package:sahakorn3/src/screens/user/shop/setting/switch_shop/switch_shop.dart';
 import 'package:sahakorn3/src/widgets/logout_list_title.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
-
-import 'package:sahakorn3/src/screens/user/shop/edit_profile/edit_personal_profile.dart';
-import 'package:sahakorn3/src/screens/user/shop/edit_profile/edit_shop_profile.dart';
-import 'package:sahakorn3/src/screens/user/shop/switch_shop/switch_shop.dart';
-
-import 'package:sahakorn3/src/screens/user/shop/changepassword/change_password.dart';
-import 'package:sahakorn3/src/screens/user/shop/support/help_support.dart';
+import 'package:sahakorn3/src/screens/user/shop/setting/edit_profile/edit_personal_profile.dart';
+import 'package:sahakorn3/src/screens/user/shop/setting/edit_profile/edit_shop_profile.dart';
+import 'package:sahakorn3/src/screens/user/shop/setting/changepassword/change_password.dart';
+import 'package:sahakorn3/src/screens/user/shop/setting/support/help_support.dart';
 
 class ShopSettingpage extends StatefulWidget {
   const ShopSettingpage({super.key});
