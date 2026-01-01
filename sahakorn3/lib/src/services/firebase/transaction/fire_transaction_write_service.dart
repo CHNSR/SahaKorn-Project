@@ -11,6 +11,7 @@ class FireTransactionWriteService {
     try {
       final payload = {
         'transaction_id': tx.transactionId,
+        'shop_id': tx.shopId,
         'user_id': tx.userId,
         'product_id': tx.productId,
         'payment_method': tx.paymentMethod,
@@ -28,7 +29,10 @@ class FireTransactionWriteService {
   }
 
   /// Update (merge) fields on an existing transaction document.
-  Future<String?> updateTransaction({required String docId, required Map<String, dynamic> data}) async {
+  Future<String?> updateTransaction({
+    required String docId,
+    required Map<String, dynamic> data,
+  }) async {
     try {
       await _firestore.collection(collectionName).doc(docId).set({
         ...data,

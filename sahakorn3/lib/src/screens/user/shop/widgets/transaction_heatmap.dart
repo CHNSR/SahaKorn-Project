@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_heatmap_calendar/flutter_heatmap_calendar.dart';
 import 'package:intl/intl.dart';
+import 'package:sahakorn3/src/models/transaction.dart';
 
 class TransactionHeatmap extends StatefulWidget {
-  const TransactionHeatmap({super.key});
+  final List<AppTransaction> transactions;
+  const TransactionHeatmap({super.key, required this.transactions});
 
   @override
   State<TransactionHeatmap> createState() => _TransactionHeatmapState();
@@ -12,35 +14,66 @@ class TransactionHeatmap extends StatefulWidget {
 class _TransactionHeatmapState extends State<TransactionHeatmap> {
   String _selectedView = 'Day'; // Day, Month, Year
 
-  // Mock Data
-  final Map<DateTime, int> _dayData = {
-    DateTime.now(): 15,
-    DateTime.now().subtract(const Duration(days: 2)): 8,
-    DateTime.now().subtract(const Duration(days: 4)): 12,
-    DateTime.now().subtract(const Duration(days: 5)): 20,
-    DateTime.now().subtract(const Duration(days: 10)): 5,
-    DateTime.now().subtract(const Duration(days: 15)): 10,
-    DateTime.now().subtract(const Duration(days: 25)): 30,
-    DateTime(2024, 1, 1): 1,
-  };
+  Map<DateTime, int> _dayData = {};
+  Map<int, int> _monthData = {};
+  Map<int, int> _yearData = {};
 
-  final Map<int, int> _monthData = {
-    // Month index 1-12 : count
-    1: 450, 2: 320, 3: 550, 4: 400, 5: 600, 6: 280,
-    7: 500, 8: 700, 9: 450, 10: 620, 11: 400, 12: 500,
-  };
+  @override
+  void initState() {
+    super.initState();
+    _processData();
+  }
 
-  final Map<int, int> _yearData = {
-    // Year : count
-    2021: 15000,
-    2022: 22000,
-    2023: 18000,
-    2024: 25000,
-    2025: 5000,
-  };
+  @override
+  void didUpdateWidget(covariant TransactionHeatmap oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transactions != widget.transactions) {
+      _processData();
+    }
+  }
+
+  void _processData() {
+    _dayData = {};
+    _monthData = {};
+    _yearData = {};
+
+    if (widget.transactions.isEmpty) return;
+
+    for (var t in widget.transactions) {
+      final date = t.createdAt;
+      if (date == null) continue;
+
+      // Day Data (Normalize to midnight)
+      final dayKey = DateTime(date.year, date.month, date.day);
+      _dayData[dayKey] = (_dayData[dayKey] ?? 0) + 1;
+
+      // Month Data (1-12)
+      final monthKey = date.month;
+      _monthData[monthKey] = (_monthData[monthKey] ?? 0) + 1;
+
+      // Year Data
+      final yearKey = date.year;
+      _yearData[yearKey] = (_yearData[yearKey] ?? 0) + 1;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.transactions.isEmpty) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        color: Colors.white,
+        child: const SizedBox(
+          height: 200,
+          child: Center(child: Text('No activity data')),
+        ),
+      );
+    }
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -145,11 +178,11 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
       scrollable: true,
       colorsets: {
         1: Colors.green.shade50,
-        5: Colors.green.shade100,
-        10: Colors.green.shade300,
-        15: Colors.green.shade500,
-        20: Colors.green.shade700,
-        30: Colors.green.shade900,
+        3: Colors.green.shade100,
+        5: Colors.green.shade300,
+        8: Colors.green.shade500,
+        12: Colors.green.shade700,
+        20: Colors.green.shade900,
       },
       onClick: (value) {
         // Handle click
@@ -176,11 +209,19 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
       itemBuilder: (context, index) {
         final monthIndex = index + 1;
         final count = _monthData[monthIndex] ?? 0;
-        final opacity = (count / 800).clamp(0.2, 1.0); // Normalize mock max 800
+        final max =
+            _monthData.values.isEmpty
+                ? 1
+                : _monthData.values.reduce((a, b) => a > b ? a : b);
+        final opacity = (count / (max == 0 ? 1 : max)).clamp(0.2, 1.0);
+        final hasData = count > 0;
 
         return Container(
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(opacity),
+            color:
+                hasData
+                    ? Colors.blue.withOpacity(opacity)
+                    : Colors.grey.shade100,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -189,7 +230,8 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
               Text(
                 DateFormat('MMM').format(DateTime(2024, monthIndex)),
                 style: TextStyle(
-                  color: opacity > 0.5 ? Colors.white : Colors.black87,
+                  color:
+                      hasData && opacity > 0.5 ? Colors.white : Colors.black87,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -197,7 +239,10 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
               Text(
                 '${count} txn',
                 style: TextStyle(
-                  color: opacity > 0.5 ? Colors.white70 : Colors.black54,
+                  color:
+                      hasData && opacity > 0.5
+                          ? Colors.white70
+                          : Colors.black54,
                   fontSize: 10,
                 ),
               ),
@@ -209,8 +254,11 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
   }
 
   Widget _buildYearGrid() {
-    // Simple vertical list for years as columns might be too wide or few items
     final sortedYears = _yearData.keys.toList()..sort();
+
+    if (sortedYears.isEmpty) {
+      return const Center(child: Text("No yearly data"));
+    }
 
     return SizedBox(
       height: 120, // fixed height for row
@@ -221,8 +269,11 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
         itemBuilder: (context, index) {
           final year = sortedYears[index];
           final count = _yearData[year] ?? 0;
-          final maxCount = 25000; // Mock Max
-          final heightFactor = (count / maxCount).clamp(0.2, 1.0);
+          final maxCount = _yearData.values.reduce((a, b) => a > b ? a : b);
+          final heightFactor = (count / (maxCount == 0 ? 1 : maxCount)).clamp(
+            0.2,
+            1.0,
+          );
 
           return Column(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -236,7 +287,9 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '${(count / 1000).toStringAsFixed(1)}k',
+                  count >= 1000
+                      ? '${(count / 1000).toStringAsFixed(1)}k'
+                      : count.toString(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,

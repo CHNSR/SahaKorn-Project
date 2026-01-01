@@ -6,7 +6,9 @@ import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
+import 'package:sahakorn3/src/models/transaction.dart';
 import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
+import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
 import 'package:sahakorn3/src/utils/formatters.dart';
 
 class ShopHomepage extends StatefulWidget {
@@ -18,8 +20,11 @@ class ShopHomepage extends StatefulWidget {
 
 class _ShopHomepageState extends State<ShopHomepage> {
   final CreditRepository _creditRepo = CreditRepository();
+  final TransactionRepository _transactionRepo = TransactionRepository();
+
   double _usedCredit = 0.0;
   double _overdueCredit = 0.0;
+  List<AppTransaction> _transactions = [];
 
   @override
   void initState() {
@@ -58,7 +63,9 @@ class _ShopHomepageState extends State<ShopHomepage> {
 
   Future<void> _loadCreditStats() async {
     final shop = context.read<ShopProvider>().currentShop;
-    if (shop == null) return;
+    final userId = context.read<UserInformationProvider>().uid;
+
+    if (shop == null || userId == null) return;
 
     final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
     final overdue = await _creditRepo.countTotalAmountLoan(
@@ -66,10 +73,16 @@ class _ShopHomepageState extends State<ShopHomepage> {
       status: 'overdue',
     );
 
+    final txns = await _transactionRepo.fetchForAnalytics(
+      userId,
+      shopId: shop.id,
+    );
+
     if (mounted) {
       setState(() {
         _usedCredit = used ?? 0.0;
         _overdueCredit = overdue ?? 0.0;
+        _transactions = txns;
       });
     }
   }
@@ -94,11 +107,11 @@ class _ShopHomepageState extends State<ShopHomepage> {
               const SizedBox(height: 24),
 
               // Transaction Chart
-              const TransactionChart(),
+              TransactionChart(transactions: _transactions),
               const SizedBox(height: 24),
 
               // Transaction Heatmap
-              const TransactionHeatmap(),
+              TransactionHeatmap(transactions: _transactions),
 
               const SizedBox(height: 40), // Bottom padding
             ],

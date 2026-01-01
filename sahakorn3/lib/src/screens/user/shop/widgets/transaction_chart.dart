@@ -1,9 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:sahakorn3/src/models/transaction.dart';
+import 'package:sahakorn3/src/utils/formatters.dart';
+import 'package:intl/intl.dart';
 
 class TransactionChart extends StatefulWidget {
-  const TransactionChart({super.key});
+  final List<AppTransaction> transactions;
+  const TransactionChart({super.key, required this.transactions});
 
   @override
   State<TransactionChart> createState() => _TransactionChartState();
@@ -16,85 +19,194 @@ class _TransactionChartState extends State<TransactionChart> {
   bool _showLoan = true;
   bool _showCash = true;
 
-  // Mock Data Structure: [Total (Blue), Loan (Yellow), Cash (Green)]
-  final Map<String, List<List<double>>> _mockData = {
-    'Day': [
-      [1500, 2200, 1800, 2500, 3000, 2000, 3500], // Total
-      [500, 1000, 600, 1000, 1200, 800, 1500], // Loan
-      [1000, 1200, 1200, 1500, 1800, 1200, 2000], // Cash
-    ],
-    'Month': [
-      [
-        30000,
-        35000,
-        28000,
-        40000,
-        42000,
-        38000,
-        45000,
-        41000,
-        43000,
-        48000,
-        45000,
-        50000,
-      ], // Total
-      [
-        10000,
-        12000,
-        8000,
-        15000,
-        18000,
-        14000,
-        20000,
-        16000,
-        18000,
-        22000,
-        20000,
-        24000,
-      ], // Loan
-      [
-        20000,
-        23000,
-        20000,
-        25000,
-        24000,
-        24000,
-        25000,
-        25000,
-        25000,
-        26000,
-        25000,
-        26000,
-      ], // Cash
-    ],
-    'Year': [
-      [300000, 350000, 400000, 450000, 500000], // Total
-      [100000, 120000, 150000, 180000, 200000], // Loan
-      [200000, 230000, 250000, 270000, 300000], // Cash
-    ],
-  };
+  Map<String, List<List<double>>> _processedData = {};
+  Map<String, List<String>> _labels = {};
 
-  final Map<String, List<String>> _mockLabels = {
-    'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    'Month': [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ],
-    'Year': ['2021', '2022', '2023', '2024', '2025'],
-  };
+  @override
+  void initState() {
+    super.initState();
+    _processData();
+  }
+
+  @override
+  void didUpdateWidget(covariant TransactionChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transactions != widget.transactions) {
+      _processData();
+    }
+  }
+
+  void _processData() {
+    // Initialize empty structure
+    _processedData = {
+      'Day': [[], [], []],
+      'Month': [[], [], []],
+      'Year': [[], [], []],
+    };
+    _labels = {'Day': [], 'Month': [], 'Year': []};
+
+    if (widget.transactions.isEmpty) return;
+
+    final now = DateTime.now();
+
+    // --- Process Day (Last 7 Days) ---
+    final List<String> dayLabels = [];
+    final List<double> dayTotal = [];
+    final List<double> dayLoan = [];
+    final List<double> dayCash = [];
+
+    // Create 7 buckets (reverse order: 6 days ago -> today)
+    for (int i = 6; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      dayLabels.add(DateFormat('E').format(date)); // Mon, Tue...
+
+      // Filter txns for this day
+      final txns = widget.transactions.where((t) {
+        final tDate = t.createdAt;
+        if (tDate == null) return false;
+        return tDate.year == date.year &&
+            tDate.month == date.month &&
+            tDate.day == date.day;
+      });
+
+      double total = 0;
+      double loan = 0;
+      double cash = 0;
+
+      for (var t in txns) {
+        // Logic:
+        // Cash: Income, Payment, Cash, Credit
+        // Loan: Loan, Expense (Expense is arguably not 'Loan' but negative cash...
+        // for simplicity, let's treat Loan as 'Credit Used/Loan' and Expense as separate or ignored in 'Cash' graph?
+        // User requirements: "Total, Loan, Cash"
+
+        bool isLoanType = ['Loan'].contains(t.paymentMethod);
+        bool isCashType = [
+          'Income',
+          'Payment',
+          'Cash',
+          'Credit',
+        ].contains(t.paymentMethod);
+        // Note: 'Expense' usually means money out, so not 'Cash IN'.
+
+        if (isLoanType) {
+          loan += t.totalAmount;
+          total += t.totalAmount; // Add to activity volume
+        } else if (isCashType) {
+          cash += t.totalAmount;
+          total += t.totalAmount;
+        }
+      }
+      dayTotal.add(total);
+      dayLoan.add(loan);
+      dayCash.add(cash);
+    }
+    _processedData['Day'] = [dayTotal, dayLoan, dayCash];
+    _labels['Day'] = dayLabels;
+
+    // --- Process Month (Last 12 Months) ---
+    final List<String> monthLabels = [];
+    final List<double> monthTotal = [];
+    final List<double> monthLoan = [];
+    final List<double> monthCash = [];
+
+    for (int i = 11; i >= 0; i--) {
+      // Logic to get month start date
+      final d = DateTime(now.year, now.month - i, 1);
+      monthLabels.add(DateFormat('MMM').format(d));
+
+      final txns = widget.transactions.where((t) {
+        final tDate = t.createdAt;
+        if (tDate == null) return false;
+        return tDate.year == d.year && tDate.month == d.month;
+      });
+
+      double total = 0;
+      double loan = 0;
+      double cash = 0;
+      for (var t in txns) {
+        bool isLoanType = ['Loan'].contains(t.paymentMethod);
+        bool isCashType = [
+          'Income',
+          'Payment',
+          'Cash',
+          'Credit',
+        ].contains(t.paymentMethod);
+        if (isLoanType) {
+          loan += t.totalAmount;
+          total += t.totalAmount;
+        } else if (isCashType) {
+          cash += t.totalAmount;
+          total += t.totalAmount;
+        }
+      }
+      monthTotal.add(total);
+      monthLoan.add(loan);
+      monthCash.add(cash);
+    }
+    _processedData['Month'] = [monthTotal, monthLoan, monthCash];
+    _labels['Month'] = monthLabels;
+
+    // --- Process Year (Last 5 Years) ---
+    final List<String> yearLabels = [];
+    final List<double> yearTotal = [];
+    final List<double> yearLoan = [];
+    final List<double> yearCash = [];
+
+    for (int i = 4; i >= 0; i--) {
+      final y = now.year - i;
+      yearLabels.add(y.toString());
+
+      final txns = widget.transactions.where((t) {
+        final tDate = t.createdAt;
+        if (tDate == null) return false;
+        return tDate.year == y;
+      });
+
+      double total = 0;
+      double loan = 0;
+      double cash = 0;
+      for (var t in txns) {
+        bool isLoanType = ['Loan'].contains(t.paymentMethod);
+        bool isCashType = [
+          'Income',
+          'Payment',
+          'Cash',
+          'Credit',
+        ].contains(t.paymentMethod);
+        if (isLoanType) {
+          loan += t.totalAmount;
+          total += t.totalAmount;
+        } else if (isCashType) {
+          cash += t.totalAmount;
+          total += t.totalAmount;
+        }
+      }
+      yearTotal.add(total);
+      yearLoan.add(loan);
+      yearCash.add(cash);
+    }
+    _processedData['Year'] = [yearTotal, yearLoan, yearCash];
+    _labels['Year'] = yearLabels;
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.transactions.isEmpty) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        color: Colors.white,
+        child: const SizedBox(
+          height: 300,
+          child: Center(child: Text('No transaction data')),
+        ),
+      );
+    }
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -135,7 +247,7 @@ class _TransactionChartState extends State<TransactionChart> {
                     horizontalInterval: _getInterval(),
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
-                        color: Colors.grey.withValues(alpha: 0.05),
+                        color: Colors.grey.withOpacity(0.05),
                         strokeWidth: 1,
                       );
                     },
@@ -155,8 +267,9 @@ class _TransactionChartState extends State<TransactionChart> {
                         interval: 1,
                         getTitlesWidget: (double value, TitleMeta meta) {
                           final index = value.toInt();
-                          final labels = _mockLabels[_selectedFilter]!;
+                          final labels = _labels[_selectedFilter] ?? [];
                           if (index >= 0 && index < labels.length) {
+                            // Skip labels on small screens if many items
                             if (_selectedFilter == 'Month' && index % 2 != 0) {
                               return const SizedBox();
                             }
@@ -200,25 +313,27 @@ class _TransactionChartState extends State<TransactionChart> {
                   ),
                   borderData: FlBorderData(show: false),
                   minX: 0,
-                  maxX: (_mockData[_selectedFilter]![0].length - 1).toDouble(),
+                  maxX:
+                      ((_processedData[_selectedFilter]?[0].length ?? 1) - 1)
+                          .toDouble(),
                   minY: 0,
                   maxY: _getMaxY(),
                   lineBarsData: [
                     if (_showTotal)
                       _buildLineChartBarData(
-                        _mockData[_selectedFilter]![0],
+                        _processedData[_selectedFilter]![0],
                         const Color(0xFF2196F3), // Professional Blue
                         true,
                       ),
                     if (_showLoan)
                       _buildLineChartBarData(
-                        _mockData[_selectedFilter]![1],
+                        _processedData[_selectedFilter]![1],
                         const Color(0xFFFFC107), // Professional Amber
                         false,
                       ),
                     if (_showCash)
                       _buildLineChartBarData(
-                        _mockData[_selectedFilter]![2],
+                        _processedData[_selectedFilter]![2],
                         const Color(0xFF4CAF50), // Professional Green
                         false,
                       ),
@@ -417,27 +532,25 @@ class _TransactionChartState extends State<TransactionChart> {
           );
         },
       ),
-      belowBarData: BarAreaData(
-        show: true,
-        color: color.withValues(alpha: 0.1),
-      ),
+      belowBarData: BarAreaData(show: true, color: color.withOpacity(0.1)),
     );
   }
 
   double _getMaxY() {
     // Find max value across all datasets for current filter
     double max = 0;
-    for (var dataset in _mockData[_selectedFilter]!) {
+    final datasets = _processedData[_selectedFilter] ?? [];
+    for (var dataset in datasets) {
       for (var value in dataset) {
         if (value > max) max = value;
       }
     }
-    return max * 1.2; // Add buffer
+    return max == 0 ? 10 : max * 1.2; // Add buffer
   }
 
   double _getInterval() {
     double max = _getMaxY();
-    return max / 4;
+    return max == 0 ? 1 : max / 4;
   }
 
   String _formatCurrency(double value) {

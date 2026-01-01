@@ -4,6 +4,8 @@ import 'package:sahakorn3/src/utils/formatters.dart';
 import 'package:sahakorn3/src/models/transaction.dart';
 import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
 import 'package:sahakorn3/src/utils/custom_snackbar.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
 
 class ShopQrGeneratePage extends StatefulWidget {
   const ShopQrGeneratePage({super.key});
@@ -59,8 +61,16 @@ class _ShopQrGeneratePageState extends State<ShopQrGeneratePage> {
         .map((e) => '${e['name']} (${e['price']})')
         .join(', ');
 
+    final shopId = context.read<ShopProvider>().currentShop?.id ?? '';
+    if (shopId.isEmpty) {
+      AppSnackBar.showError(context, 'Shop ID is missing!');
+      setState(() => _isLoading = false);
+      return;
+    }
+
     final newTx = AppTransaction(
       transactionId: 'TX-${DateTime.now().millisecondsSinceEpoch}',
+      shopId: shopId,
       userId: 'anonymous_walk_in', // Or real user ID if available
       productId: 'mixed_cart', // Or specific product logic
       paymentMethod: _paymentMethod,

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class AppTransaction {
   final String? docId; // Firestore Document ID
   final String transactionId;
+  final String shopId; // Shop ID to link transaction to a shop
   final String userId;
   final String productId;
   final String paymentMethod;
@@ -14,6 +15,7 @@ class AppTransaction {
   AppTransaction({
     this.docId,
     required this.transactionId,
+    required this.shopId,
     required this.userId,
     required this.productId,
     required this.paymentMethod,
@@ -40,6 +42,7 @@ class AppTransaction {
     return AppTransaction(
       docId: id,
       transactionId: data['transaction_id'] as String? ?? id,
+      shopId: data['shop_id'] as String? ?? '',
       userId: data['user_id'] as String? ?? '',
       productId: data['product_id'] as String? ?? '',
       paymentMethod: data['payment_method'] as String? ?? '',
@@ -58,6 +61,7 @@ class AppTransaction {
 
   Map<String, dynamic> toMap() => {
     'transaction_id': transactionId,
+    'shop_id': shopId,
     'user_id': userId,
     'product_id': productId,
     'payment_method': paymentMethod,

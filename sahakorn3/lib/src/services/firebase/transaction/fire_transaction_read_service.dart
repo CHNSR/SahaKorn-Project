@@ -13,17 +13,24 @@ class FireTransactionReadService {
 
   Future<List<AppTransaction>> fetchByUser(
     String userId, {
+    String? shopId,
     int limit = 50,
   }) async {
+    Query query = _firestore.collection(collectionName);
+
+    if (shopId != null && shopId.isNotEmpty) {
+      query = query.where('shop_id', isEqualTo: shopId);
+    } else {
+      query = query.where('user_id', isEqualTo: userId);
+    }
+
     final snap =
-        await _firestore
-            .collection(collectionName)
-            .where('user_id', isEqualTo: userId)
-            .orderBy('created_at', descending: true)
-            .limit(limit)
-            .get();
+        await query.orderBy('created_at', descending: true).limit(limit).get();
+
     return snap.docs
-        .map((d) => AppTransaction.fromMap(d.id, d.data()))
+        .map(
+          (d) => AppTransaction.fromMap(d.id, d.data() as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -74,13 +81,19 @@ class FireTransactionReadService {
 
   /// Calculates total balance and today's sales.
   /// Returns a Map with keys: 'totalBalance', 'todaySales'.
-  Future<Map<String, double>> calculateStats({String? userId}) async {
+  Future<Map<String, double>> calculateStats({
+    String? userId,
+    String? shopId,
+  }) async {
     // 1. Query relevant transactions
     // Note: For large datasets, client-side aggregation is expensive.
     // Ideally, maintain running totals in a separate 'stats' document using Cloud Functions.
     // For now, we fetch all (or a reasonable limit) to calculate.
     Query query = _firestore.collection(collectionName);
-    if (userId != null) {
+
+    if (shopId != null && shopId.isNotEmpty) {
+      query = query.where('shop_id', isEqualTo: shopId);
+    } else if (userId != null) {
       query = query.where('user_id', isEqualTo: userId);
     }
 

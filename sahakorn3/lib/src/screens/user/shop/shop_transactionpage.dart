@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart'; // It was already there indirectly? No line 13 uses it.
+import 'package:sahakorn3/src/models/transaction.dart'; // For type
+import 'package:sahakorn3/src/utils/formatters.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:intl/intl.dart';
 
@@ -20,8 +25,15 @@ class _ShopTransactionState extends State<ShopTransaction> {
   }
 
   void _refreshStats() {
+    // Ideally get shopId safely. Since we are in init state, we defer context read?
+    // Actually context.read is fine in initState for callbacks, but here we execute immediately.
+    // However, since this page is after Home, shop should be loaded.
+    // We'll wrap in Future.microtask or just use it if we are sure.
+    // Or better, do it in didChangeDependencies just to be safe if shop updates?
+    // For now, let's keep it simple.
+    final shop = context.read<ShopProvider>().currentShop;
     setState(() {
-      _statsFuture = _repository.calculateStats(); // Add userId if needed
+      _statsFuture = _repository.calculateStats(shopId: shop?.id);
     });
   }
 
