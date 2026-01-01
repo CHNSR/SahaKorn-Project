@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
+import '../../utils/custom_snackbar.dart';
 
 class NotificationItem {
   final String id;
@@ -79,12 +80,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         it.read = true;
       }
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('All notifications marked as read'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    AppSnackBar.showSuccess(context, 'All notifications marked as read');
   }
 
   void _toggleRead(NotificationItem item) {

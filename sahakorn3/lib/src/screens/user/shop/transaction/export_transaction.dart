@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/app_theme.dart';
 import '../../../../services/firebase/transaction/transaction_repository.dart';
+import '../../../../utils/custom_snackbar.dart';
 
 class ExportTransaction extends StatefulWidget {
   final TransactionRepository? repository;
@@ -82,10 +83,9 @@ class _ExportTransactionState extends State<ExportTransaction> {
 
       if (filtered.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No transactions found in selected range.'),
-            ),
+          AppSnackBar.showInfo(
+            context,
+            'No transactions found in selected range.',
           );
         }
         return;
@@ -132,9 +132,7 @@ class _ExportTransactionState extends State<ExportTransaction> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Export failed: $e')));
+        AppSnackBar.showError(context, 'Export failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

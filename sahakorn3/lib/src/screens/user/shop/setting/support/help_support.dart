@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({super.key});
@@ -58,22 +59,16 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Feedback sent! Thank you for your input.'),
-          backgroundColor: Colors.green,
-        ),
+      ScaffoldMessenger.of(context).hideCurrentSnackBar(); // Hide any previous
+      AppSnackBar.showSuccess(
+        context,
+        'Feedback sent! Thank you for your input.',
       );
       _feedbackController.clear();
       FocusScope.of(context).unfocus();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to send feedback: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppSnackBar.showError(context, 'Failed to send feedback: $e');
     } finally {
       if (mounted) setState(() => _isSending = false);
     }

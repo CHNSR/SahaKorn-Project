@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 import '../../../../utils/formatters.dart';
 
 class RepaymentScreen extends StatefulWidget {
@@ -74,10 +75,9 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
               onPressed: () {
                 // TODO: Process Repayment
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Repayment recorded for ${loan['id']}'),
-                  ),
+                AppSnackBar.showSuccess(
+                  context,
+                  'Repayment recorded for ${loan['id']}',
                 );
               },
               child: const Text('Confirm'),

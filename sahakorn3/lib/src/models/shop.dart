@@ -8,6 +8,7 @@ class Shop {
   final String description;
   final String logo;
   final String status;
+  final double creditLimit;
 
   Shop({
     required this.id,
@@ -19,6 +20,7 @@ class Shop {
     required this.description,
     required this.logo,
     required this.status,
+    this.creditLimit = 0.0,
   });
 
   factory Shop.fromMap(String id, Map<String, dynamic> data) => Shop(
@@ -31,6 +33,7 @@ class Shop {
     description: data['description'] ?? '',
     logo: data['logo'] ?? '',
     status: data['status'] ?? '',
+    creditLimit: (data['creditLimit'] ?? 0.0).toDouble(),
   );
 
   Map<String, dynamic> toMap() => {
@@ -42,5 +45,6 @@ class Shop {
     'description': description,
     'logo': logo,
     'status': status,
+    'creditLimit': creditLimit,
   };
 }

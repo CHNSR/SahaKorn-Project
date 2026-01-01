@@ -1,5 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
+import 'package:sahakorn3/src/services/firebase/shop/shop_repository.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 import 'package:sahakorn3/src/utils/formatters.dart';
 
 class ManageTotalCredit extends StatefulWidget {
@@ -11,11 +16,35 @@ class ManageTotalCredit extends StatefulWidget {
 
 class _ManageTotalCreditState extends State<ManageTotalCredit> {
   final TextEditingController _creditController = TextEditingController();
+  final CreditRepository _creditRepo = CreditRepository();
+  final ShopRepository _shopRepo = ShopRepository();
+
   String _transactionType = 'Add'; // 'Add' or 'Reduce'
 
-  // Mock Data
-  double _totalCredit = 50000;
-  double _usedCredit = 15000;
+  double _usedCredit = 0;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData();
+    });
+  }
+
+  Future<void> _fetchData() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop != null) {
+      setState(() => _isLoading = true);
+      final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
+      if (mounted) {
+        setState(() {
+          _usedCredit = used ?? 0.0;
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -23,48 +52,69 @@ class _ManageTotalCreditState extends State<ManageTotalCredit> {
     super.dispose();
   }
 
-  void _manageCredit() {
+  Future<void> _manageCredit() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop == null) return;
+
     if (_creditController.text.isNotEmpty) {
       final double? amount = double.tryParse(
         _creditController.text.replaceAll(',', ''),
       );
 
       if (amount != null) {
-        if (_transactionType == 'Reduce' && amount > _totalCredit) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Cannot reduce more than total credit!'),
-            ),
+        final double totalCredit = shop.creditLimit;
+
+        if (_transactionType == 'Reduce' &&
+            amount > (totalCredit - _usedCredit)) {
+          AppSnackBar.showError(
+            context,
+            'Cannot reduce more than total Available Credit!',
           );
           return;
         }
 
-        setState(() {
-          if (_transactionType == 'Add') {
-            _totalCredit += amount;
-          } else {
-            _totalCredit -= amount;
-            // Ensure total credit doesn't go below used credit?
-            // The prompt didn't specify, but usually you shouldn't reduce below usage.
-            // For now, let's just update total. If total < used, available will be 0 as per build logic.
-          }
-          _creditController.clear();
-        });
+        setState(() => _isLoading = true);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
+        try {
+          double newLimit = totalCredit;
+          if (_transactionType == 'Add') {
+            newLimit += amount;
+          } else {
+            newLimit -= amount;
+          }
+
+          await _shopRepo.updateShop(shop.id, {'creditLimit': newLimit});
+
+          if (mounted) {
+            await context.read<ShopProvider>().loadShops(shop.ownerId);
+            _creditController.clear();
+
+            AppSnackBar.showSuccess(
+              context,
               'Credit limit ${_transactionType == 'Add' ? 'increased' : 'reduced'} successfully!',
-            ),
-          ),
-        );
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            AppSnackBar.showError(context, 'Error updating credit: $e');
+          }
+        } finally {
+          if (mounted) {
+            setState(() => _isLoading = false);
+          }
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    double availableCredit = _totalCredit - _usedCredit;
+    final shop = context.watch<ShopProvider>().currentShop;
+    if (shop == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    double availableCredit = shop.creditLimit - _usedCredit;
     if (availableCredit < 0) availableCredit = 0;
 
     return Scaffold(
@@ -150,7 +200,7 @@ class _ManageTotalCreditState extends State<ManageTotalCredit> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              Formatters.formatBaht(_totalCredit),
+                              Formatters.formatBaht(shop.creditLimit),
                               style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
@@ -300,16 +350,26 @@ class _ManageTotalCreditState extends State<ManageTotalCredit> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                       ),
-                      child: Text(
-                        _transactionType == 'Add'
-                            ? 'Increase Limit'
-                            : 'Reduce Limit',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
+                      child:
+                          _isLoading
+                              ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Text(
+                                _transactionType == 'Add'
+                                    ? 'Increase Limit'
+                                    : 'Reduce Limit',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                     ),
                   ),
                 ],

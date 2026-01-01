@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class EditPersonalProfileScreen extends StatefulWidget {
   const EditPersonalProfileScreen({super.key});
@@ -54,27 +55,15 @@ class _EditPersonalProfileScreenState extends State<EditPersonalProfileScreen> {
 
       if (error == null) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        AppSnackBar.showSuccess(context, 'Profile updated successfully');
         Navigator.pop(context);
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: const Color(0xFFf25f4c),
-          ),
-        );
+        AppSnackBar.showError(context, error);
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      );
+      AppSnackBar.showError(context, e.toString());
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

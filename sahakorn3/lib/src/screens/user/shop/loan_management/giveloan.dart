@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class GiveLoanScreen extends StatefulWidget {
   const GiveLoanScreen({super.key});
@@ -34,9 +35,7 @@ class _GiveLoanScreenState extends State<GiveLoanScreen> {
   void _submitLoan() {
     if (_formKey.currentState!.validate()) {
       // TODO: Process Loan Creation
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Processing Loan...')));
+      AppSnackBar.showInfo(context, 'Processing Loan...');
     }
   }
 

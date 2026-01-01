@@ -45,7 +45,7 @@ export 'package:sahakorn3/src/screens/user/shop/loan_management/giveloan.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/customers.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/repayment.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/history.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/credit_management/manage_total_credit.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/manage_total_credit.dart';
 
 // Settings
 export 'package:sahakorn3/src/screens/user/shop/setting/changepassword/change_password.dart';

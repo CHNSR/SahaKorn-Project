@@ -4,6 +4,7 @@ import '../../../../core/app_theme.dart';
 import '../../../../models/transaction.dart';
 import '../../../../services/firebase/transaction/transaction_repository.dart';
 import '../../../../utils/formatters.dart';
+import '../../../../utils/custom_snackbar.dart';
 
 class DigitalReceipt extends StatefulWidget {
   const DigitalReceipt({super.key});
@@ -381,9 +382,7 @@ class _ReceiptDetailSheet extends StatelessWidget {
               onPressed: () {
                 // Share functionality placeholder
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Receipt Shared!')),
-                );
+                AppSnackBar.showSuccess(context, 'Receipt Shared!');
               },
               icon: const Icon(Icons.share, color: Colors.white),
               label: const Text(

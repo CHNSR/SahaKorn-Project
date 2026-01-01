@@ -2,8 +2,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
+
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/providers/user_infomation.dart';
+import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
+import 'package:sahakorn3/src/utils/formatters.dart';
 
 class ShopHomepage extends StatefulWidget {
   const ShopHomepage({super.key});
@@ -13,13 +17,61 @@ class ShopHomepage extends StatefulWidget {
 }
 
 class _ShopHomepageState extends State<ShopHomepage> {
+  final CreditRepository _creditRepo = CreditRepository();
+  double _usedCredit = 0.0;
+  double _overdueCredit = 0.0;
+
   @override
   void initState() {
     super.initState();
-    // Load mock data for demonstration as requested
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ShopProvider>().loadMockShops();
+      _checkAndLoadShops();
+      context.read<UserInformationProvider>().addListener(_checkAndLoadShops);
     });
+  }
+
+  @override
+  void dispose() {
+    context.read<UserInformationProvider>().removeListener(_checkAndLoadShops);
+    super.dispose();
+  }
+
+  void _checkAndLoadShops() {
+    if (!mounted) return;
+
+    final userProvider = context.read<UserInformationProvider>();
+    final shopProvider = context.read<ShopProvider>();
+
+    final userId = userProvider.uid;
+
+    // Only load if user exists and shops aren't loaded or loading
+    if (userId != null && shopProvider.shops.isEmpty && !shopProvider.loading) {
+      shopProvider.loadShops(userId).then((_) {
+        // After shops are loaded, load credit stats
+        _loadCreditStats();
+      });
+    } else if (shopProvider.currentShop != null) {
+      // If shop already loaded, just update stats
+      _loadCreditStats();
+    }
+  }
+
+  Future<void> _loadCreditStats() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop == null) return;
+
+    final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
+    final overdue = await _creditRepo.countTotalAmountLoan(
+      shopId: shop.id,
+      status: 'overdue',
+    );
+
+    if (mounted) {
+      setState(() {
+        _usedCredit = used ?? 0.0;
+        _overdueCredit = overdue ?? 0.0;
+      });
+    }
   }
 
   @override
@@ -124,6 +176,10 @@ class _ShopHomepageState extends State<ShopHomepage> {
   }
 
   Widget _buildBalanceCard() {
+    final shop = context.watch<ShopProvider>().currentShop;
+    final double creditLimit = shop?.creditLimit ?? 0.0;
+    final double available = creditLimit - _usedCredit;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -162,7 +218,7 @@ class _ShopHomepageState extends State<ShopHomepage> {
           ),
           const SizedBox(height: 12),
           Text(
-            Formatters.formatBaht(12300.00),
+            Formatters.formatBaht(available),
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.w700,
@@ -173,9 +229,9 @@ class _ShopHomepageState extends State<ShopHomepage> {
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildMiniStat('IN', 18000.00, Colors.green),
+              _buildMiniStat('LIMIT', creditLimit, Colors.green),
               const SizedBox(width: 16),
-              _buildMiniStat('OUT', 5700.00, Colors.red),
+              _buildMiniStat('USED', _usedCredit, Colors.red),
             ],
           ),
         ],
@@ -209,9 +265,19 @@ class _ShopHomepageState extends State<ShopHomepage> {
   }
 
   Widget _buildActionCard() {
+    final shop = context.watch<ShopProvider>().currentShop;
+    final double creditLimit = shop?.creditLimit ?? 0.0;
+
+    // Calculate distributions
+    double available = creditLimit - _usedCredit;
+    if (available < 0) available = 0;
+    final double normalUsed = _usedCredit - _overdueCredit;
+
     return InkWell(
-      onTap: () {
-        Navigator.pushNamed(context, Routes.manageTotalCredit);
+      onTap: () async {
+        await Navigator.pushNamed(context, Routes.manageTotalCredit);
+        // Refresh when coming back
+        _loadCreditStats();
       },
       borderRadius: BorderRadius.circular(16),
       child: Container(
@@ -238,32 +304,35 @@ class _ShopHomepageState extends State<ShopHomepage> {
                 sectionsSpace: 0,
                 centerSpaceRadius: 40, // 80% scale
                 startDegreeOffset: -90,
-                sections: [
-                  // Remaining (Green/White)
-                  PieChartSectionData(
-                    color: Color(0xFFb5e48c),
-                    value: 12300,
-                    title: '',
-                    radius: 10,
-                    showTitle: false,
-                  ),
-                  // Used (Yellow)
-                  PieChartSectionData(
-                    color: Color(0xFFf4d35e),
-                    value: 5700,
-                    title: '',
-                    radius: 10,
-                    showTitle: false,
-                  ),
-                  //out date (Red)
-                  PieChartSectionData(
-                    color: Color(0xFFf95738),
-                    value: 500,
-                    title: '',
-                    radius: 10,
-                    showTitle: false,
-                  ),
-                ],
+                sections:
+                    creditLimit > 0
+                        ? [
+                          // Available (Green/White)
+                          PieChartSectionData(
+                            color: const Color(0xFFb5e48c),
+                            value: available,
+                            title: '',
+                            radius: 10,
+                            showTitle: false,
+                          ),
+                          // Normal Used (Yellow)
+                          PieChartSectionData(
+                            color: const Color(0xFFf4d35e),
+                            value: normalUsed > 0 ? normalUsed : 0,
+                            title: '',
+                            radius: 10,
+                            showTitle: false,
+                          ),
+                          // Overdue (Red)
+                          PieChartSectionData(
+                            color: const Color(0xFFf95738),
+                            value: _overdueCredit,
+                            title: '',
+                            radius: 10,
+                            showTitle: false,
+                          ),
+                        ]
+                        : [], // Empty if no limit
               ),
             ),
             Column(

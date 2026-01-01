@@ -11,7 +11,8 @@ class CreditRepository {
   Future<int?> countTotalLoan() => _readService.countTotalLoan();
 
   /// Calculate total amount of all loans
-  Future<double?> countTotalAmountLoan() => _readService.countTotalAmountLoan();
+  Future<double?> countTotalAmountLoan({String? shopId, String? status}) =>
+      _readService.countTotalAmountLoan(shopId: shopId, status: status);
 
   // --- Write Methods ---
 

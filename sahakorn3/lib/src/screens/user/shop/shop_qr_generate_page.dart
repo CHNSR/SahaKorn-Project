@@ -3,6 +3,7 @@ import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:sahakorn3/src/utils/formatters.dart';
 import 'package:sahakorn3/src/models/transaction.dart';
 import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class ShopQrGeneratePage extends StatefulWidget {
   const ShopQrGeneratePage({super.key});
@@ -73,19 +74,7 @@ class _ShopQrGeneratePageState extends State<ShopQrGeneratePage> {
     setState(() => _isLoading = false);
 
     if (error == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Transaction saved successfully!'),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppSnackBar.showSuccess(context, 'Transaction saved successfully!');
       // Clear items after successful save
       setState(() {
         _items.clear();
@@ -94,9 +83,7 @@ class _ShopQrGeneratePageState extends State<ShopQrGeneratePage> {
         _paymentMethod = 'Cash';
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $error'), backgroundColor: Colors.red),
-      );
+      AppSnackBar.showError(context, 'Error: $error');
     }
   }
 

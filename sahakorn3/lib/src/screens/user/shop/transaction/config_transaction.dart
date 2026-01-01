@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/app_theme.dart';
 import '../../../../models/transaction.dart';
 import '../../../../services/firebase/transaction/transaction_repository.dart';
+import '../../../../utils/custom_snackbar.dart';
 
 class ConfigTransaction extends StatefulWidget {
   final AppTransaction transaction;
@@ -117,16 +118,12 @@ class _ConfigTransactionState extends State<ConfigTransaction> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $error')));
+          AppSnackBar.showError(context, 'Error: $error');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        AppSnackBar.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -167,16 +164,12 @@ class _ConfigTransactionState extends State<ConfigTransaction> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Error: $error')));
+          AppSnackBar.showError(context, 'Error: $error');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        AppSnackBar.showError(context, 'Error: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

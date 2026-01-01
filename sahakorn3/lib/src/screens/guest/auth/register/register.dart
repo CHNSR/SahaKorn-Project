@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:sahakorn3/src/services/firebase/auth/fire_register.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -39,30 +40,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (errorMessage == null) {
         // success
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Registration successful! Please sign in.'),
-            backgroundColor: Colors.green,
-          ),
+        // success
+        AppSnackBar.showSuccess(
+          context,
+          'Registration successful! Please sign in.',
         );
         Navigator.of(context).pushReplacementNamed(Routes.login);
       } else {
         // service returned an error message
         debugPrint('Register error: $errorMessage');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
-        );
+        // service returned an error message
+        debugPrint('Register error: $errorMessage');
+        AppSnackBar.showError(context, errorMessage);
       }
     } catch (e, st) {
       // unexpected exception
       debugPrint('Unexpected register exception: $e\n$st');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Unexpected error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (!mounted) return;
+      AppSnackBar.showError(context, 'Unexpected error: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _loading = false);
     }

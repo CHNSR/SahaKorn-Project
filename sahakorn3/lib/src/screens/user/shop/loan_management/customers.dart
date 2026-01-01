@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 import '../../../../utils/formatters.dart';
 
 class CustomersScreen extends StatefulWidget {
@@ -54,11 +55,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
           IconButton(
             onPressed: () {
               // TODO: Navigate to Add Customer Screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Add Customer feature coming soon'),
-                ),
-              );
+              AppSnackBar.showInfo(context, 'Add Customer feature coming soon');
             },
             icon: const Icon(Icons.person_add),
           ),

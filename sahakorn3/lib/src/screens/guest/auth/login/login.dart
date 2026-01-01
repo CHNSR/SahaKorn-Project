@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:sahakorn3/src/services/firebase/auth/fire_login.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,9 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (error == null) {
         Navigator.of(context).pushReplacementNamed(Routes.customerHome);
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error)));
+        AppSnackBar.showError(context, error);
         print("Login error: $error");
       }
     } finally {

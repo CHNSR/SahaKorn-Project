@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class LogoutListTile extends StatelessWidget {
   const LogoutListTile({super.key});
@@ -8,17 +9,24 @@ class LogoutListTile extends StatelessWidget {
   void _confirmSignOut(BuildContext context) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Sign out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Sign out', style: TextStyle(color: Colors.red)),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Sign out'),
+            content: const Text('Are you sure you want to sign out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Sign out',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
 
     if (ok == true) {
@@ -30,9 +38,7 @@ class LogoutListTile extends StatelessWidget {
       } catch (e) {
         // Check if the widget is still in the tree
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error signing out: ${e.toString()}')),
-          );
+          AppSnackBar.showError(context, 'Error signing out: ${e.toString()}');
         }
       }
     }

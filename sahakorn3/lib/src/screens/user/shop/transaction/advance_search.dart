@@ -3,6 +3,7 @@ import '../../../../core/app_theme.dart';
 import '../../../../models/transaction.dart';
 import '../../../../services/firebase/transaction/transaction_repository.dart';
 import '../../../../utils/formatters.dart';
+import '../../../../utils/custom_snackbar.dart';
 import 'package:intl/intl.dart';
 import '../../../../routes/exports.dart';
 import '../../../../routes/routes.dart';
@@ -105,9 +106,7 @@ class _AdvanceSearchState extends State<AdvanceSearch> {
         _isLoading = false;
         _searchResults = [];
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      AppSnackBar.showError(context, 'Error: $e');
     }
   }
 

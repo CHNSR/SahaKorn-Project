@@ -4,6 +4,7 @@ import 'package:sahakorn3/src/models/shop.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
 import 'package:sahakorn3/src/services/firebase/shop/fire_shop_write_service.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 
 class EditShopProfileScreen extends StatefulWidget {
@@ -91,9 +92,7 @@ class _EditShopProfileScreenState extends State<EditShopProfileScreen> {
   Future<void> _saveShop() async {
     if (!_formKey.currentState!.validate()) return;
     if (_shopId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No shop to update found.')));
+      AppSnackBar.showError(context, 'No shop to update found.');
       return;
     }
 
@@ -120,21 +119,11 @@ class _EditShopProfileScreenState extends State<EditShopProfileScreen> {
       await context.read<ShopProvider>().loadShops(_ownerId!);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Shop updated successfully'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      AppSnackBar.showSuccess(context, 'Shop updated successfully');
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error updating shop: $e'),
-          backgroundColor: const Color(0xFFf25f4c),
-        ),
-      );
+      AppSnackBar.showError(context, 'Error updating shop: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -145,9 +134,7 @@ class _EditShopProfileScreenState extends State<EditShopProfileScreen> {
     setState(() {
       _logoFileName = 'updated_logo.png';
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Logo selected (simulation)')));
+    AppSnackBar.showInfo(context, 'Logo selected (simulation)');
   }
 
   InputDecoration _buildInputDecoration({

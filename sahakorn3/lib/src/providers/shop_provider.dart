@@ -24,8 +24,17 @@ class ShopProvider extends ChangeNotifier {
       logger.i('Provider: Loaded ${shops.length} shops: $shops');
 
       // Select first shop by default if none selected
-      if (shops.isNotEmpty && _currentShop == null) {
-        _currentShop = shops.first;
+      if (shops.isNotEmpty) {
+        if (_currentShop == null) {
+          _currentShop = shops.first;
+        } else {
+          // Refresh current shop data
+          final refreshedShop = shops.firstWhere(
+            (s) => s.id == _currentShop!.id,
+            orElse: () => shops.first,
+          );
+          _currentShop = refreshedShop;
+        }
       }
       return shops;
     } catch (e, stackTrace) {
@@ -45,46 +54,6 @@ class ShopProvider extends ChangeNotifier {
   void selectShop(Shop shop) {
     _currentShop = shop;
     logger.i('Selected shop: ${shop.name}');
-    notifyListeners();
-  }
-
-  void loadMockShops() {
-    shops = [
-      Shop(
-        id: 'mock_1',
-        name: 'SahaKorn Demo 1',
-        address: '123 Fake St',
-        phone: '0812345678',
-        email: 'demo1@test.com',
-        ownerId: 'mock_owner',
-        description: 'Mock shop 1',
-        logo: '',
-        status: 'active',
-      ),
-      Shop(
-        id: 'mock_2',
-        name: 'SahaKorn Branch 2',
-        address: '456 Test Ave',
-        phone: '0898765432',
-        email: 'demo2@test.com',
-        ownerId: 'mock_owner',
-        description: 'Mock shop 2',
-        logo: '',
-        status: 'active',
-      ),
-      Shop(
-        id: 'mock_3',
-        name: 'Coffee Cafe',
-        address: '789 Java Rd',
-        phone: '021239999',
-        email: 'coffee@cafe.com',
-        ownerId: 'mock_owner',
-        description: 'Mock shop 3',
-        logo: '',
-        status: 'active',
-      ),
-    ];
-    _currentShop = shops.first;
     notifyListeners();
   }
 }

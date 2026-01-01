@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/models/shop.dart';
 import 'package:sahakorn3/src/services/firebase/shop/fire_shop_write_service.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 import 'package:sahakorn3/src/routes/exports.dart';
 
@@ -42,9 +43,7 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
     setState(() {
       _logoFileName = 'logo_example.png';
     });
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Logo selected (simulation)')));
+    AppSnackBar.showInfo(context, 'Logo selected (simulation)');
   }
 
   Future<void> _submitForm() async {
@@ -83,34 +82,19 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
       // createShop returns doc id on success
       if (result is String && result.isNotEmpty) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Shop created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        AppSnackBar.showSuccess(context, 'Shop created successfully!');
         Navigator.of(
           context,
         ).pushNamedAndRemoveUntil(Routes.shopHome, (route) => false);
       } else {
         // unexpected return
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to create shop'),
-            backgroundColor: Color(0xFFf25f4c),
-          ),
-        );
+        AppSnackBar.showError(context, 'Failed to create shop');
       }
     } catch (e) {
       debugPrint('Create shop error: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: Color(0xFFf25f4c),
-          ),
-        );
+        AppSnackBar.showError(context, e.toString());
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

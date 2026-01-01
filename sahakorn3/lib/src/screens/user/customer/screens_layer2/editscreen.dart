@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sahakorn3/src/services/firebase/user/user_repository.dart';
 import 'package:sahakorn3/src/models/user.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class EditProfileScreen extends StatefulWidget {
   /// If [uid] is not provided, current FirebaseAuth user uid will be used.
@@ -62,9 +63,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (!_formKey.currentState!.validate()) return;
     final uid = _uid;
     if (uid == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No authenticated user')));
+      AppSnackBar.showError(context, 'No authenticated user');
       return;
     }
 
@@ -81,15 +80,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() => _saving = false);
 
     if (err == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      AppSnackBar.showSuccess(context, 'Profile updated');
       await _loadUser(); // refresh
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+      AppSnackBar.showError(context, err);
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -26,9 +27,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     await Future.delayed(const Duration(milliseconds: 700));
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Password reset link sent to your email!')),
-    );
+    AppSnackBar.showSuccess(context, 'Password reset link sent to your email!');
     Navigator.of(context).pop();
   }
 
