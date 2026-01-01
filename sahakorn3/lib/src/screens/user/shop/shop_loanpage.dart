@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
 import 'package:sahakorn3/src/screens/user/shop/widgets/loan_usage_chart.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:sahakorn3/src/utils/formatters.dart';
 
 class ShopCredit extends StatefulWidget {
   const ShopCredit({super.key});
@@ -10,13 +14,56 @@ class ShopCredit extends StatefulWidget {
 }
 
 class _ShopCreditState extends State<ShopCredit> {
-  final double creditLimit = 20000.0;
-  final double currentBalance = 5300.50; // amount owed
+  final CreditRepository _creditRepo = CreditRepository();
+  double _usedCredit = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchData();
+    });
+  }
+
+  Future<void> _fetchData() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop != null) {
+      if (!mounted) return;
+      // You could set loading true here if you want a spinner effect every time
+      // setState(() => _isLoading = true);
+
+      try {
+        final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
+        if (mounted) {
+          setState(() {
+            _usedCredit = used ?? 0.0;
+          });
+        }
+      } catch (e) {
+        debugPrint('Error fetching used credit: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final available = creditLimit - currentBalance;
-    final double usedRatio = (currentBalance / creditLimit).clamp(0.0, 1.0);
+    final shop = context.watch<ShopProvider>().currentShop;
+
+    // If shop is not loaded yet, show loading (optional, or handle gracefully)
+    if (shop == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final double creditLimit = shop.creditLimit;
+    final double currentBalance = _usedCredit;
+
+    double available = creditLimit - currentBalance;
+    if (available < 0) available = 0;
+
+    final double usedRatio =
+        (creditLimit > 0)
+            ? (currentBalance / creditLimit).clamp(0.0, 1.0)
+            : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.grey[50], // Professional light grey bg
@@ -28,7 +75,7 @@ class _ShopCreditState extends State<ShopCredit> {
             children: [
               _buildHeader(),
               const SizedBox(height: 24),
-              _buildCreditSummaryCard(available, usedRatio),
+              _buildCreditSummaryCard(creditLimit, available, usedRatio),
               const SizedBox(height: 24),
               _buildSectionTitle('Management'),
               _buildActionGrid(),
@@ -90,10 +137,16 @@ class _ShopCreditState extends State<ShopCredit> {
     );
   }
 
-  Widget _buildCreditSummaryCard(double available, double usedRatio) {
+  Widget _buildCreditSummaryCard(
+    double creditLimit,
+    double available,
+    double usedRatio,
+  ) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, Routes.manageTotalCredit);
+      onTap: () async {
+        await Navigator.pushNamed(context, Routes.manageTotalCredit);
+        // Refresh data when returning from management screen
+        _fetchData();
       },
       child: Container(
         width: double.infinity,
