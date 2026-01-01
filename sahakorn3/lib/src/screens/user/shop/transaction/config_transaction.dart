@@ -109,7 +109,7 @@ class _ConfigTransactionState extends State<ConfigTransaction> {
 
     try {
       final error = await _repo.update(
-        widget.transaction.transactionId,
+        widget.transaction.docId ?? widget.transaction.transactionId,
         updatedData,
       );
       if (error == null) {
@@ -157,7 +157,9 @@ class _ConfigTransactionState extends State<ConfigTransaction> {
 
     setState(() => _isLoading = true);
     try {
-      final error = await _repo.delete(widget.transaction.transactionId);
+      final error = await _repo.delete(
+        widget.transaction.docId ?? widget.transaction.transactionId,
+      );
       if (error == null) {
         if (mounted) {
           Navigator.pop(context, true);

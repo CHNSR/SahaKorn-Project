@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AppTransaction {
+  final String? docId; // Firestore Document ID
   final String transactionId;
   final String userId;
   final String productId;
@@ -11,6 +12,7 @@ class AppTransaction {
   final List<Map<String, dynamic>>? editHistory;
 
   AppTransaction({
+    this.docId,
     required this.transactionId,
     required this.userId,
     required this.productId,
@@ -36,6 +38,7 @@ class AppTransaction {
     }
 
     return AppTransaction(
+      docId: id,
       transactionId: data['transaction_id'] as String? ?? id,
       userId: data['user_id'] as String? ?? '',
       productId: data['product_id'] as String? ?? '',

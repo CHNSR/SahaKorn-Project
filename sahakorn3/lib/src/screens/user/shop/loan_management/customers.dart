@@ -231,7 +231,8 @@ class _CustomersScreenState extends State<CustomersScreen> {
   Widget _buildCustomerCard(Map<String, dynamic> customer) {
     final double creditLimit = customer['creditLimit'];
     final double currentDebt = customer['currentDebt'];
-    final double available = creditLimit - currentDebt;
+    // final double available = creditLimit - currentDebt; // unused
+
     final String status = customer['status'] ?? 'Good';
 
     Color statusColor;

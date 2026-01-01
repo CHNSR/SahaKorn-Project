@@ -228,7 +228,7 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'My Shop Profile',
+                  'My Profile',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
