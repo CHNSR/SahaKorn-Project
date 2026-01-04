@@ -2,14 +2,10 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
-
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
-import 'package:sahakorn3/src/models/transaction.dart';
 import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
-import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
-import 'package:sahakorn3/src/utils/formatters.dart';
 
 class ShopHomepage extends StatefulWidget {
   const ShopHomepage({super.key});

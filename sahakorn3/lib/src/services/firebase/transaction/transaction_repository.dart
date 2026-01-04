@@ -1,6 +1,5 @@
 import 'package:sahakorn3/src/services/firebase/transaction/fire_transaction_write_service.dart';
-import 'package:sahakorn3/src/services/firebase/transaction/shop/shop_transaction_read_service.dart';
-import 'package:sahakorn3/src/services/firebase/transaction/customer/customer_transaction_read_service.dart';
+
 import 'package:sahakorn3/src/services/firebase/transaction/fire_transaction_read_service.dart'; // Keep for specific mixed use if needed, or remove?
 import 'package:sahakorn3/src/models/transaction.dart';
 
@@ -9,38 +8,25 @@ class TransactionRepository {
   // but ideally we switch to specific ones.
   // final FireTransactionReadService readService;
 
-  final ShopTransactionReadService _shopRead;
-  final CustomerTransactionReadService _customerRead;
   final FireTransactionWriteService _writeService;
   final FireTransactionReadService _oldReadService; // Temporary fallback
 
   TransactionRepository({
-    ShopTransactionReadService? shopRead,
-    CustomerTransactionReadService? customerRead,
     FireTransactionWriteService? writeService,
     FireTransactionReadService? oldReadService,
-  }) : _shopRead = shopRead ?? ShopTransactionReadService(),
-       _customerRead = customerRead ?? CustomerTransactionReadService(),
-       _writeService = writeService ?? FireTransactionWriteService(),
+  }) : _writeService = writeService ?? FireTransactionWriteService(),
        _oldReadService = oldReadService ?? FireTransactionReadService();
 
   // --- SHOP Queries ---
   Future<Map<String, double>> calculateStats({String? userId, String? shopId}) {
-    if (shopId != null) {
-      return _shopRead.calculateStats(shopId);
-    }
-    // Fallback to old behavior for userId-only calls (if any)
-    return _oldReadService.calculateStats(userId: userId);
+    return _oldReadService.calculateStats(userId: userId, shopId: shopId);
   }
 
   Future<List<AppTransaction>> fetchForAnalytics(
     String userId, {
     String? shopId,
   }) {
-    if (shopId != null) {
-      return _shopRead.fetchByShopId(shopId, limit: 1000);
-    }
-    return _customerRead.fetchByUserId(userId, limit: 1000);
+    return _oldReadService.fetchForAnalytics(userId: userId, shopId: shopId);
   }
 
   Future<List<AppTransaction>> getByUser(
@@ -48,10 +34,7 @@ class TransactionRepository {
     String? shopId,
     int limit = 50,
   }) {
-    if (shopId != null) {
-      return _shopRead.fetchByShopId(shopId, limit: limit);
-    }
-    return _customerRead.fetchByUserId(userId, limit: limit);
+    return _oldReadService.fetchByUser(userId, shopId: shopId, limit: limit);
   }
 
   // --- Facade Wrappers (Routing) ---

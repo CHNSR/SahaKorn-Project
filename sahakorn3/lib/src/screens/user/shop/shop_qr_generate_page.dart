@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:pretty_qr_code/pretty_qr_code.dart';
 import 'package:sahakorn3/src/utils/formatters.dart';
 import 'package:sahakorn3/src/models/transaction.dart';
@@ -62,6 +63,8 @@ class _ShopQrGeneratePageState extends State<ShopQrGeneratePage> {
         .join(', ');
 
     final shopId = context.read<ShopProvider>().currentShop?.id ?? '';
+    final logger = Logger();
+    logger.i('Shop ID: $shopId');
     if (shopId.isEmpty) {
       AppSnackBar.showError(context, 'Shop ID is missing!');
       setState(() => _isLoading = false);

@@ -11,8 +11,9 @@ class FireTransactionReadService {
     return AppTransaction.fromMap(doc.id, doc.data());
   }
 
+  //shop id for shop owner, user id for customer
   Future<List<AppTransaction>> fetchByUser(
-    String userId, {
+    String customerId, {
     String? shopId,
     int limit = 50,
   }) async {
@@ -21,6 +22,29 @@ class FireTransactionReadService {
     if (shopId != null && shopId.isNotEmpty) {
       query = query.where('shop_id', isEqualTo: shopId);
     } else {
+      query = query.where('user_id', isEqualTo: customerId);
+    }
+
+    final snap =
+        await query.orderBy('created_at', descending: true).limit(limit).get();
+
+    return snap.docs
+        .map(
+          (d) => AppTransaction.fromMap(d.id, d.data() as Map<String, dynamic>),
+        )
+        .toList();
+  }
+
+  Future<List<AppTransaction>> fetchForAnalytics({
+    String? userId,
+    String? shopId,
+    int limit = 1000,
+  }) async {
+    Query query = _firestore.collection(collectionName);
+
+    if (shopId != null && shopId.isNotEmpty) {
+      query = query.where('shop_id', isEqualTo: shopId);
+    } else if (userId != null && userId.isNotEmpty) {
       query = query.where('user_id', isEqualTo: userId);
     }
 
