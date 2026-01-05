@@ -7,6 +7,7 @@ export 'package:sahakorn3/src/utils/formatters.dart';
 // Models
 export 'package:sahakorn3/src/models/shop.dart';
 export 'package:sahakorn3/src/models/transaction.dart';
+export 'package:sahakorn3/src/models/transaction_query_type.dart';
 
 // Services
 export 'package:sahakorn3/src/services/firebase/shop/fire_shop_read_service.dart';

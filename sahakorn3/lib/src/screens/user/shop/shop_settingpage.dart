@@ -66,11 +66,12 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                   ),
                   _buildDivider(),
                   _buildSettingItem(
-                    icon: Icons.payment,
-                    iconColor: Colors.green,
-                    title: 'Payment Methods',
-                    subtitle: 'Manage cards & bank accounts',
-                    onTap: () {},
+                    icon: Icons.store_mall_directory,
+                    iconColor: Colors.indigo,
+                    title: 'Create Shop',
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.createShop);
+                    },
                   ),
                 ],
               ),
@@ -164,15 +165,6 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
               _buildSectionTitle('Support'),
               _buildSectionContainer(
                 children: [
-                  _buildSettingItem(
-                    icon: Icons.store_mall_directory,
-                    iconColor: Colors.indigo,
-                    title: 'Create Shop',
-                    onTap: () {
-                      Navigator.pushNamed(context, Routes.createShop);
-                    },
-                  ),
-                  _buildDivider(),
                   _buildSettingItem(
                     icon: Icons.help_outline,
                     iconColor: Colors.teal,

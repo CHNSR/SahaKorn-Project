@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/models/transaction_query_type.dart';
 import '../../../../core/app_theme.dart';
-import '../../../../models/transaction.dart';
-import '../../../../services/firebase/transaction/transaction_repository.dart';
-import '../../../../utils/formatters.dart';
 import '../../../../utils/custom_snackbar.dart';
 import 'package:intl/intl.dart';
 import '../../../../routes/exports.dart';
-import '../../../../routes/routes.dart';
 
 class AdvanceSearch extends StatefulWidget {
   final TransactionRepository repository;
@@ -65,7 +64,12 @@ class _AdvanceSearchState extends State<AdvanceSearch> {
     try {
       // 1. Fetch all (or improved query if repo supports it)
       // For now, fetching limit 200 to accommodate search on recent items
-      final allTransactions = await widget.repository.listAll(limit: 200);
+      final shopId = context.read<ShopProvider>().currentShop?.id ?? '';
+      final allTransactions = await widget.repository.getByCatagoryOfUser(
+        catagory: TransactionQueryType.shop,
+        playload: shopId,
+        limit: 200,
+      );
 
       // 2. Filter client-side
       final filtered =

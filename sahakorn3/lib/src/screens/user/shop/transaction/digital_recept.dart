@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 import '../../../../core/app_theme.dart';
-import '../../../../models/transaction.dart';
-import '../../../../services/firebase/transaction/transaction_repository.dart';
-import '../../../../utils/formatters.dart';
 import '../../../../utils/custom_snackbar.dart';
 
 class DigitalReceipt extends StatefulWidget {
@@ -32,27 +32,36 @@ class _DigitalReceiptState extends State<DigitalReceipt> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: FutureBuilder<List<AppTransaction>>(
-        future: _repository.listAll(limit: 50),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final transactions = snapshot.data ?? [];
+      body: Builder(
+        builder: (context) {
+          final shopId = context.read<ShopProvider>().currentShop?.id ?? '';
+          return FutureBuilder<List<AppTransaction>>(
+            future: _repository.getByCatagoryOfUser(
+              catagory: TransactionQueryType.shop,
+              playload: shopId,
+              limit: 50,
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              final transactions = snapshot.data ?? [];
 
-          if (transactions.isEmpty) {
-            return const Center(child: Text('No receipts found.'));
-          }
+              if (transactions.isEmpty) {
+                return const Center(child: Text('No receipts found.'));
+              }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(20),
-            itemCount: transactions.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              return _buildReceiptItem(context, transactions[index]);
+              return ListView.separated(
+                padding: const EdgeInsets.all(20),
+                itemCount: transactions.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  return _buildReceiptItem(context, transactions[index]);
+                },
+              );
             },
           );
         },

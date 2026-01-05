@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sahakorn3/src/models/transaction.dart';
 
+import 'package:sahakorn3/src/models/transaction_query_type.dart';
+
 class FireTransactionReadService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String collectionName = 'transactions';
@@ -11,19 +13,15 @@ class FireTransactionReadService {
     return AppTransaction.fromMap(doc.id, doc.data());
   }
 
-  //shop id for shop owner, user id for customer
-  Future<List<AppTransaction>> fetchByUser(
-    String customerId, {
-    String? shopId,
+  Future<List<AppTransaction>> getByCategoryOfUser({
+    required TransactionQueryType category,
+    required String key,
     int limit = 50,
   }) async {
     Query query = _firestore.collection(collectionName);
 
-    if (shopId != null && shopId.isNotEmpty) {
-      query = query.where('shop_id', isEqualTo: shopId);
-    } else {
-      query = query.where('user_id', isEqualTo: customerId);
-    }
+    // Use the fieldName from the enum directly
+    query = query.where(category.fieldName, isEqualTo: key);
 
     final snap =
         await query.orderBy('created_at', descending: true).limit(limit).get();
@@ -56,25 +54,6 @@ class FireTransactionReadService {
           (d) => AppTransaction.fromMap(d.id, d.data() as Map<String, dynamic>),
         )
         .toList();
-  }
-
-  Future<int?> countByUser(String userId) async {
-    try {
-      final agg =
-          await _firestore
-              .collection(collectionName)
-              .where('user_id', isEqualTo: userId)
-              .count()
-              .get();
-      return agg.count;
-    } catch (_) {
-      final snap =
-          await _firestore
-              .collection(collectionName)
-              .where('user_id', isEqualTo: userId)
-              .get();
-      return snap.docs.length;
-    }
   }
 
   Stream<List<AppTransaction>> watchByUser(String userId) {

@@ -2,6 +2,7 @@ import 'package:sahakorn3/src/services/firebase/transaction/fire_transaction_wri
 
 import 'package:sahakorn3/src/services/firebase/transaction/fire_transaction_read_service.dart'; // Keep for specific mixed use if needed, or remove?
 import 'package:sahakorn3/src/models/transaction.dart';
+import 'package:sahakorn3/src/models/transaction_query_type.dart';
 
 class TransactionRepository {
   // We keep the old readService for backward compatibility if any legacy calls exist,
@@ -29,21 +30,21 @@ class TransactionRepository {
     return _oldReadService.fetchForAnalytics(userId: userId, shopId: shopId);
   }
 
-  Future<List<AppTransaction>> getByUser(
-    String userId, {
-    String? shopId,
-    int limit = 50,
+  Future<List<AppTransaction>> getByCatagoryOfUser({
+    required TransactionQueryType catagory,
+    required String playload,
+    required int limit,
   }) {
-    return _oldReadService.fetchByUser(userId, shopId: shopId, limit: limit);
+    return _oldReadService.getByCategoryOfUser(
+      category: catagory,
+      key: playload,
+      limit: limit,
+    );
   }
 
   // --- Facade Wrappers (Routing) ---
 
   Future<AppTransaction?> getById(String id) => _oldReadService.fetchById(id);
-
-  // Deprecated/Unused in new flow?
-  Future<int?> countByUser(String userId) =>
-      _oldReadService.countByUser(userId);
 
   Stream<List<AppTransaction>> watchByUser(String userId) =>
       _oldReadService.watchByUser(userId);

@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
-import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart'; // It was already there indirectly? No line 13 uses it.
-import 'package:sahakorn3/src/models/transaction.dart'; // For type
-import 'package:sahakorn3/src/utils/formatters.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:intl/intl.dart';
+
+import 'package:sahakorn3/src/models/transaction_query_type.dart';
 
 class ShopTransaction extends StatefulWidget {
   const ShopTransaction({super.key});
@@ -17,23 +16,23 @@ class ShopTransaction extends StatefulWidget {
 class _ShopTransactionState extends State<ShopTransaction> {
   final TransactionRepository _repository = TransactionRepository();
   late Future<Map<String, double>> _statsFuture;
+  late Future<List<AppTransaction>> _transactionsFuture;
 
   @override
   void initState() {
     super.initState();
-    _refreshStats();
+    _refreshData();
   }
 
-  void _refreshStats() {
-    // Ideally get shopId safely. Since we are in init state, we defer context read?
-    // Actually context.read is fine in initState for callbacks, but here we execute immediately.
-    // However, since this page is after Home, shop should be loaded.
-    // We'll wrap in Future.microtask or just use it if we are sure.
-    // Or better, do it in didChangeDependencies just to be safe if shop updates?
-    // For now, let's keep it simple.
-    final shop = context.read<ShopProvider>().currentShop;
+  void _refreshData() {
+    final shopId = context.read<ShopProvider>().currentShop?.id ?? '';
     setState(() {
-      _statsFuture = _repository.calculateStats(shopId: shop?.id);
+      _statsFuture = _repository.calculateStats(shopId: shopId);
+      _transactionsFuture = _repository.getByCatagoryOfUser(
+        catagory: TransactionQueryType.shop,
+        playload: shopId,
+        limit: 20,
+      );
     });
   }
 
@@ -334,17 +333,14 @@ class _ShopTransactionState extends State<ShopTransaction> {
               ),
               IconButton(
                 icon: const Icon(Icons.refresh, color: Colors.grey),
-                onPressed: () {
-                  setState(() {}); // Refresh list
-                  _refreshStats(); // Refresh balance card
-                },
+                onPressed: _refreshData,
               ),
             ],
           ),
           const SizedBox(height: 16),
           Expanded(
             child: FutureBuilder<List<AppTransaction>>(
-              future: _repository.listAll(limit: 20),
+              future: _transactionsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
