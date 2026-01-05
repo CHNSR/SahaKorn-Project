@@ -7,22 +7,26 @@ class FireCreditWriteService {
   Future<String?> createCredit({
     required String userId,
     required String shopId,
-    required double amount,
+    required double creditLimit,
+    required double creditUsed,
     required double interest,
     required int loanTerm,
     required String loanStatus,
+    String? userName, // Added userName
   }) async {
     try {
       final docRef = _firestore.collection(_collectionName).doc(userId);
       await docRef.set({
         'userId': userId,
-        'shopid': shopId,
-        'amount': amount,
+        'shopId': shopId,
+        'creditLimit': creditLimit,
+        'creditUsed': creditUsed,
         'interest': interest,
         'createdAt': FieldValue.serverTimestamp(),
         'loanTerm': loanTerm,
         'loanStatus': loanStatus,
         'updatedAt': FieldValue.serverTimestamp(),
+        'userName': userName, // Save userName
       });
       return null;
     } on FirebaseException catch (e) {
@@ -36,7 +40,8 @@ class FireCreditWriteService {
   Future<String?> updateCredit({
     required String userId,
     required String shopId,
-    required double amount,
+    required double creditLimit,
+    required double creditUsed, // Renamed from amount
     required double interest,
     required int loanTerm,
     required String loanStatus,
@@ -44,8 +49,9 @@ class FireCreditWriteService {
     try {
       final docRef = _firestore.collection(_collectionName).doc(userId);
       await docRef.update({
-        'shopid': shopId,
-        'amount': amount,
+        'shopId': shopId,
+        'creditLimit': creditLimit,
+        'creditUsed': creditUsed, // Renamed from amount
         'interest': interest,
         'createdAt': FieldValue.serverTimestamp(),
         'loanTerm': loanTerm,

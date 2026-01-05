@@ -1,9 +1,12 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:intl/intl.dart';
+import 'package:sahakorn3/src/models/transaction.dart';
+import 'package:sahakorn3/src/utils/formatters.dart';
 
 class LoanUsageChart extends StatefulWidget {
-  const LoanUsageChart({super.key});
+  final List<AppTransaction> transactions;
+  const LoanUsageChart({super.key, required this.transactions});
 
   @override
   State<LoanUsageChart> createState() => _LoanUsageChartState();
@@ -12,48 +15,131 @@ class LoanUsageChart extends StatefulWidget {
 class _LoanUsageChartState extends State<LoanUsageChart> {
   String _selectedFilter = 'Day'; // Day, Month, Year
 
-  // Mock Data
-  final Map<String, List<double>> _mockData = {
-    'Day': [500, 1200, 800, 1500, 2000, 1000, 2500], // Last 7 days
-    'Month': [
-      15000,
-      18000,
-      12000,
-      20000,
-      22000,
-      19000,
-      25000,
-      21000,
-      23000,
-      26000,
-      24000,
-      28000,
-      31,
-    ], // 12 Months
-    'Year': [150000, 180000, 200000, 220000, 250000], // Last 5 Years
-  };
+  Map<String, List<double>> _processedData = {};
+  Map<String, List<String>> _labels = {};
 
-  final Map<String, List<String>> _mockLabels = {
-    'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    'Month': [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ],
-    'Year': ['2021', '2022', '2023', '2024', '2025'],
-  };
+  @override
+  void initState() {
+    super.initState();
+    _processData();
+  }
+
+  @override
+  void didUpdateWidget(covariant LoanUsageChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.transactions != widget.transactions) {
+      _processData();
+    }
+  }
+
+  void _processData() {
+    // Initialize empty structure
+    _processedData = {'Day': [], 'Month': [], 'Year': []};
+    _labels = {'Day': [], 'Month': [], 'Year': []};
+
+    if (widget.transactions.isEmpty) return;
+
+    final now = DateTime.now();
+
+    // --- Process Day (Last 7 Days) ---
+    final List<String> dayLabels = [];
+    final List<double> dayData = [];
+
+    for (int i = 6; i >= 0; i--) {
+      final date = now.subtract(Duration(days: i));
+      dayLabels.add(DateFormat('E').format(date)); // Mon, Tue...
+
+      final txns = widget.transactions.where((t) {
+        final tDate = t.createdAt;
+        if (tDate == null) return false;
+        return tDate.year == date.year &&
+            tDate.month == date.month &&
+            tDate.day == date.day &&
+            t.paymentMethod == 'Loan';
+      });
+
+      double sum = txns.fold(0, (prev, element) => prev + element.totalAmount);
+      dayData.add(sum);
+    }
+    _processedData['Day'] = dayData;
+    _labels['Day'] = dayLabels;
+
+    // --- Process Month (Last 12 Months) ---
+    final List<String> monthLabels = [];
+    final List<double> monthData = [];
+
+    for (int i = 11; i >= 0; i--) {
+      final d = DateTime(now.year, now.month - i, 1);
+      monthLabels.add(DateFormat('MMM').format(d));
+
+      final txns = widget.transactions.where((t) {
+        final tDate = t.createdAt;
+        if (tDate == null) return false;
+        return tDate.year == d.year &&
+            tDate.month == d.month &&
+            t.paymentMethod == 'Loan';
+      });
+
+      double sum = txns.fold(0, (prev, element) => prev + element.totalAmount);
+      monthData.add(sum);
+    }
+    _processedData['Month'] = monthData;
+    _labels['Month'] = monthLabels;
+
+    // --- Process Year (Last 5 Years) ---
+    final List<String> yearLabels = [];
+    final List<double> yearData = [];
+
+    for (int i = 4; i >= 0; i--) {
+      final y = now.year - i;
+      yearLabels.add(y.toString());
+
+      final txns = widget.transactions.where((t) {
+        final tDate = t.createdAt;
+        if (tDate == null) return false;
+        return tDate.year == y && t.paymentMethod == 'Loan';
+      });
+
+      double sum = txns.fold(0, (prev, element) => prev + element.totalAmount);
+      yearData.add(sum);
+    }
+    _processedData['Year'] = yearData;
+    _labels['Year'] = yearLabels;
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Check if data is empty or all zeros
+    bool isEmpty = widget.transactions.isEmpty;
+    bool allZeros = true;
+    if (!isEmpty && _processedData[_selectedFilter] != null) {
+      allZeros = _processedData[_selectedFilter]!.every((val) => val == 0);
+    }
+
+    if (isEmpty || allZeros) {
+      return Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        color: Colors.white,
+        child: const SizedBox(
+          height: 300,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bar_chart, size: 48, color: Colors.grey),
+                SizedBox(height: 16),
+                Text('No loan usage data available'),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -91,7 +177,7 @@ class _LoanUsageChartState extends State<LoanUsageChart> {
                     horizontalInterval: _getInterval(),
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
-                        color: Colors.grey.withValues(alpha: 0.05),
+                        color: Colors.grey.withOpacity(0.05),
                         strokeWidth: 1,
                       );
                     },
@@ -111,9 +197,8 @@ class _LoanUsageChartState extends State<LoanUsageChart> {
                         interval: 1,
                         getTitlesWidget: (double value, TitleMeta meta) {
                           final index = value.toInt();
-                          final labels = _mockLabels[_selectedFilter]!;
+                          final labels = _labels[_selectedFilter] ?? [];
                           if (index >= 0 && index < labels.length) {
-                            // Show fewer labels for Month view to avoid crowding
                             if (_selectedFilter == 'Month' && index % 2 != 0) {
                               return const SizedBox();
                             }
@@ -157,13 +242,15 @@ class _LoanUsageChartState extends State<LoanUsageChart> {
                   ),
                   borderData: FlBorderData(show: false),
                   minX: 0,
-                  maxX: (_mockData[_selectedFilter]!.length - 1).toDouble(),
+                  maxX:
+                      ((_processedData[_selectedFilter]?.length ?? 1) - 1)
+                          .toDouble(),
                   minY: 0,
                   maxY: _getMaxY(),
                   lineBarsData: [
                     _buildLineChartBarData(
-                      _mockData[_selectedFilter]!,
-                      const Color(0xFF2196F3), // Professional Blue
+                      _processedData[_selectedFilter] ?? [],
+                      const Color(0xFF2196F3),
                     ),
                   ],
                   lineTouchData: LineTouchData(
@@ -260,6 +347,7 @@ class _LoanUsageChartState extends State<LoanUsageChart> {
         return FlSpot(index.toDouble(), data[index]);
       }),
       isCurved: true,
+      preventCurveOverShooting: true,
       color: color,
       barWidth: 3,
       isStrokeCapRound: true,
@@ -274,22 +362,24 @@ class _LoanUsageChartState extends State<LoanUsageChart> {
           );
         },
       ),
-      belowBarData: BarAreaData(
-        show: true,
-        color: color.withValues(alpha: 0.1),
-      ),
+      belowBarData: BarAreaData(show: true, color: color.withOpacity(0.1)),
     );
   }
 
   double _getMaxY() {
-    final data = _mockData[_selectedFilter]!;
-    double max = data.reduce((curr, next) => curr > next ? curr : next);
-    return max * 1.2; // Add some buffer
+    final data = _processedData[_selectedFilter];
+    if (data == null || data.isEmpty) return 100;
+
+    double max = 0;
+    for (var val in data) {
+      if (val > max) max = val;
+    }
+    return max == 0 ? 100 : max * 1.2;
   }
 
   double _getInterval() {
     double max = _getMaxY();
-    return max / 4; // 4 grid lines
+    return max == 0 ? 1 : max / 4;
   }
 
   String _formatCurrency(double value) {

@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/models/credit.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/screens/user/shop/loan_management/add_customer_choice.dart';
+import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
 import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 import '../../../../utils/formatters.dart';
 
@@ -11,62 +16,16 @@ class CustomersScreen extends StatefulWidget {
 
 class _CustomersScreenState extends State<CustomersScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final CreditRepository _creditRepo = CreditRepository();
 
-  // Mock Data
-  final List<Map<String, dynamic>> _allCustomers = [
-    {
-      'id': '1',
-      'name': 'Somchai Jai-dee',
-      'phone': '081-234-5678',
-      'creditLimit': 20000.0,
-      'currentDebt': 5000.0,
-      'avatarColor': Colors.blue,
-      'status': 'Good',
-    },
-    {
-      'id': '2',
-      'name': 'Somsri Rak-ngern',
-      'phone': '089-876-5432',
-      'creditLimit': 15000.0,
-      'currentDebt': 0.0,
-      'avatarColor': Colors.pink,
-      'status': 'Inactive',
-    },
-    {
-      'id': '3',
-      'name': 'Mana Me-ngern',
-      'phone': '090-111-2222',
-      'creditLimit': 50000.0,
-      'currentDebt': 12500.0,
-      'avatarColor': Colors.green,
-      'status': 'Good',
-    },
-    {
-      'id': '4',
-      'name': 'Manee Me-jai',
-      'phone': '085-555-5555',
-      'creditLimit': 10000.0,
-      'currentDebt': 9000.0,
-      'avatarColor': Colors.orange,
-      'status': 'Overdue',
-    },
-    {
-      'id': '5',
-      'name': 'Piti Rak-thai',
-      'phone': '081-999-8888',
-      'creditLimit': 30000.0,
-      'currentDebt': 28000.0,
-      'avatarColor': Colors.purple,
-      'status': 'Warning',
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredCustomers = [];
+  List<Credit> _allCredits = [];
+  List<Credit> _filteredCredits = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _filteredCustomers = _allCustomers;
+    _fetchCustomers();
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -76,14 +35,38 @@ class _CustomersScreenState extends State<CustomersScreen> {
     super.dispose();
   }
 
+  Future<void> _fetchCustomers() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final credits = await _creditRepo.getCreditsByShop(shop.id);
+      if (mounted) {
+        setState(() {
+          _allCredits = credits;
+          _filteredCredits = credits;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, 'Failed to load customers: $e');
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredCustomers =
-          _allCustomers.where((customer) {
-            final name = customer['name'].toLowerCase();
-            final phone = customer['phone'];
-            return name.contains(query) || phone.contains(query);
+      _filteredCredits =
+          _allCredits.where((credit) {
+            // Search by userId since we don't have names yet
+            final id = credit.id.toLowerCase();
+            final status = credit.loanStatus.toLowerCase();
+            return id.contains(query) || status.contains(query);
           }).toList();
     });
   }
@@ -94,7 +77,10 @@ class _CustomersScreenState extends State<CustomersScreen> {
       backgroundColor: Colors.grey[50],
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          AppSnackBar.showInfo(context, 'Add Customer feature coming soon');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddCustomerChoice()),
+          ).then((_) => _fetchCustomers()); // Refresh on return
         },
         backgroundColor: Colors.indigo,
         icon: const Icon(Icons.person_add),
@@ -114,7 +100,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'All Customers (${_filteredCustomers.length})',
+                    'All Customers (${_filteredCredits.length})',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -127,18 +113,39 @@ class _CustomersScreenState extends State<CustomersScreen> {
             ),
             const SizedBox(height: 12),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
-                itemCount: _filteredCustomers.length,
-                separatorBuilder:
-                    (context, index) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  return _buildCustomerCard(_filteredCustomers[index]);
-                },
-              ),
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _filteredCredits.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+                        itemCount: _filteredCredits.length,
+                        separatorBuilder:
+                            (context, index) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          return _buildCustomerCard(_filteredCredits[index]);
+                        },
+                      ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.person_off, size: 48, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'No customers found',
+            style: TextStyle(color: Colors.grey[600], fontSize: 16),
+          ),
+        ],
       ),
     );
   }
@@ -206,7 +213,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search by name or phone...',
+            hintText: 'Search by ID...',
             hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
             suffixIcon:
@@ -228,27 +235,29 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildCustomerCard(Map<String, dynamic> customer) {
-    final double creditLimit = customer['creditLimit'];
-    final double currentDebt = customer['currentDebt'];
-    // final double available = creditLimit - currentDebt; // unused
+  Widget _buildCustomerCard(Credit credit) {
+    // Use creditUsed for display
+    final double currentDebt = credit.creditUsed;
 
-    final String status = customer['status'] ?? 'Good';
-
+    final String status = credit.loanStatus;
+    // Map status string to color
     Color statusColor;
-    switch (status) {
-      case 'Overdue':
-        statusColor = Colors.red;
-        break;
-      case 'Warning':
-        statusColor = Colors.orange;
-        break;
-      case 'Inactive':
-        statusColor = Colors.grey;
-        break;
-      default:
-        statusColor = Colors.green;
+    if (status.toLowerCase().contains('overdue')) {
+      statusColor = Colors.red;
+    } else if (status.toLowerCase().contains('warning')) {
+      statusColor = Colors.orange;
+    } else if (status.toLowerCase().contains('inactive') ||
+        status.toLowerCase().contains('closed')) {
+      statusColor = Colors.grey;
+    } else {
+      statusColor = Colors.green; // Active, Good, etc.
     }
+
+    // Colors for avatar
+    final avatarColor =
+        Colors.primaries[credit.id.hashCode % Colors.primaries.length];
+    final String displayName =
+        credit.userName ?? 'User ${credit.id.substring(0, 6)}...';
 
     return Container(
       decoration: BoxDecoration(
@@ -267,14 +276,14 @@ class _CustomersScreenState extends State<CustomersScreen> {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: () {
-            AppSnackBar.showInfo(context, 'Tapped ${customer['name']}');
+            AppSnackBar.showInfo(context, 'Tapped $displayName');
           },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                _buildAvatar(customer),
+                _buildAvatar(displayName, avatarColor),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
@@ -283,12 +292,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            customer['name'],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                          Expanded(
+                            child: Text(
+                              displayName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Container(
@@ -312,18 +324,9 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.phone, size: 12, color: Colors.grey[500]),
-                          const SizedBox(width: 4),
-                          Text(
-                            customer['phone'],
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'ID: ${credit.id}',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                       const SizedBox(height: 12),
                       Row(
@@ -334,10 +337,25 @@ class _CustomersScreenState extends State<CustomersScreen> {
                             Colors.red[700]!,
                           ),
                           const SizedBox(width: 12),
-                          _buildStatBadge(
-                            'Limit',
-                            creditLimit,
-                            Colors.blue[700]!,
+                          // Loan Term potentially
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: Text(
+                              'Term: ${credit.loanTerm}M',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -354,21 +372,21 @@ class _CustomersScreenState extends State<CustomersScreen> {
     );
   }
 
-  Widget _buildAvatar(Map<String, dynamic> customer) {
+  Widget _buildAvatar(String name, Color color) {
     return Container(
       width: 50,
       height: 50,
       decoration: BoxDecoration(
-        color: customer['avatarColor'].withOpacity(0.1),
+        color: color.withOpacity(0.1),
         shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
       child: Text(
-        customer['name'][0],
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: customer['avatarColor'],
+          color: color,
         ),
       ),
     );

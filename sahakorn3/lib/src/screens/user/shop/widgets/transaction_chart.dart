@@ -518,6 +518,7 @@ class _TransactionChartState extends State<TransactionChart> {
         return FlSpot(index.toDouble(), data[index]);
       }),
       isCurved: true,
+      preventCurveOverShooting: true,
       color: color,
       barWidth: 3,
       isStrokeCapRound: true,

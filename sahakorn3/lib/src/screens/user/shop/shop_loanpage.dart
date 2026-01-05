@@ -15,6 +15,8 @@ class ShopCredit extends StatefulWidget {
 
 class _ShopCreditState extends State<ShopCredit> {
   final CreditRepository _creditRepo = CreditRepository();
+  final TransactionRepository _transactionRepo = TransactionRepository();
+  List<AppTransaction> _transactions = [];
   double _usedCredit = 0.0;
 
   @override
@@ -34,13 +36,20 @@ class _ShopCreditState extends State<ShopCredit> {
 
       try {
         final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
+        final txns = await _transactionRepo.getByCatagoryOfUser(
+          catagory: TransactionQueryType.shop,
+          playload: shop.id,
+          limit: 1000,
+        );
+
         if (mounted) {
           setState(() {
             _usedCredit = used ?? 0.0;
+            _transactions = txns;
           });
         }
       } catch (e) {
-        debugPrint('Error fetching used credit: $e');
+        debugPrint('Error fetching data: $e');
       }
     }
   }
@@ -82,7 +91,8 @@ class _ShopCreditState extends State<ShopCredit> {
               const SizedBox(height: 24),
               _buildSectionTitle('Analytics'),
               const SizedBox(height: 10),
-              const LoanUsageChart(),
+              const SizedBox(height: 10),
+              LoanUsageChart(transactions: _transactions),
               const SizedBox(height: 24),
               _buildSectionTitle('Deptor'),
               const SizedBox(height: 40),
@@ -375,7 +385,10 @@ class _ShopCreditState extends State<ShopCredit> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [const SizedBox(height: 20), const LoanUsageChart()],
+        children: [
+          const SizedBox(height: 20),
+          LoanUsageChart(transactions: _transactions),
+        ],
       ),
     );
   }
