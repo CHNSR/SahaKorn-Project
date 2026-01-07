@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sahakorn3/src/models/credit.dart';
-import 'package:sahakorn3/src/models/credit_transaction.dart';
-import 'package:sahakorn3/src/providers/shop_provider.dart';
-import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
-import 'package:sahakorn3/src/services/firebase/credit_transaction/credit_transaction_repository.dart';
-import 'package:sahakorn3/src/utils/custom_snackbar.dart';
-import 'package:sahakorn3/src/utils/formatters.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class RepaymentScreen extends StatefulWidget {
   const RepaymentScreen({super.key});

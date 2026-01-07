@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sahakorn3/src/screens/user/shop/loan_management/create_credit_account.dart';
-import 'package:sahakorn3/src/screens/user/shop/loan_management/qr_scanner_screen.dart';
+import 'package:sahakorn3/src/routes/exports.dart';
 
 class AddCustomerChoice extends StatelessWidget {
   const AddCustomerChoice({super.key});

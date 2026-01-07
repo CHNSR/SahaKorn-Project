@@ -19,6 +19,10 @@ class CreditRepository {
   Future<List<Credit>> getCreditsByShop(String shopId) =>
       _readService.getCreditsByShop(shopId);
 
+  /// Get credit by ID
+  Future<Credit?> getCreditById(String creditId) =>
+      _readService.getCreditById(creditId);
+
   // --- Write Methods ---
 
   /// Create a new credit record

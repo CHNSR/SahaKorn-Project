@@ -81,4 +81,19 @@ class FireCreditReadService {
       return [];
     }
   }
+
+  // get credit by id
+  Future<Credit?> getCreditById(String creditId) async {
+    try {
+      final docSnapshot =
+          await _firestore.collection(_collectionName).doc(creditId).get();
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        return Credit.fromMap(docSnapshot.id, docSnapshot.data()!);
+      }
+      return null;
+    } catch (e) {
+      print('Error fetching credit by ID: $e');
+      return null;
+    }
+  }
 }

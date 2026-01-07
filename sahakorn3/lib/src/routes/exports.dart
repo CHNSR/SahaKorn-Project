@@ -11,6 +11,7 @@ export 'package:sahakorn3/src/models/transaction_query_type.dart';
 
 // Services
 export 'package:sahakorn3/src/services/firebase/shop/fire_shop_read_service.dart';
+export 'package:sahakorn3/src/services/firebase/shop/shop_repository.dart';
 export 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
 
 // Auth Screens
@@ -42,14 +43,16 @@ export 'package:sahakorn3/src/screens/user/shop/transaction/digital_recept.dart'
 export 'package:sahakorn3/src/screens/user/shop/transaction/export_transaction.dart';
 
 // Loan Management
-export 'package:sahakorn3/src/screens/user/shop/loan_management/give_loan_user.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/customers.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/repayment.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/history.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/give%20loan/give_loan_user.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/customer/customers.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/repayment/repayment.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/history/history.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/manage_total_credit.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/add_customer_choice.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/create_credit_account.dart';
-export 'package:sahakorn3/src/screens/user/shop/loan_management/qr_scanner_screen.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/customer/add_customer_choice.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/give%20loan/create_credit_account.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/customer/qr_scanner_screen.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/customer/config_customers.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/customer/personal_loan_management.dart';
 
 // Settings
 export 'package:sahakorn3/src/screens/user/shop/setting/changepassword/change_password.dart';
@@ -69,3 +72,16 @@ export 'package:sahakorn3/src/widgets/customer_navbar.dart';
 export 'package:sahakorn3/src/widgets/shop_navbar.dart';
 export 'package:sahakorn3/src/screens/user/shop/widgets/transaction_chart.dart';
 export 'package:sahakorn3/src/screens/user/shop/widgets/transaction_heatmap.dart';
+// Core & Utils (Add CustomSnackBar)
+export 'package:sahakorn3/src/utils/custom_snackbar.dart';
+
+// Services (Add Credit Repos)
+export 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
+export 'package:sahakorn3/src/services/firebase/credit_transaction/credit_transaction_repository.dart';
+
+// Models (Add Credit Models)
+export 'package:sahakorn3/src/models/credit.dart';
+export 'package:sahakorn3/src/models/credit_transaction.dart';
+
+// Providers
+export 'package:sahakorn3/src/providers/shop_provider.dart';
