@@ -17,19 +17,35 @@ class CreditTransactionRepository {
   // --- Write Methods ---
 
   /// Create a transaction and update credit balance atomically
-  Future<String?> createTransaction({
+  /// Create a purchase (loan) transaction
+  Future<String?> createPurchase({
     required String creditId,
-    required String userId, // Added userId
+    required String userId,
     required String shopId,
     required double amount,
-    required CreditTransactionType type,
     String? note,
-  }) => _writeService.createTransaction(
+  }) => _writeService.createCreditPurchase(
     creditId: creditId,
     userId: userId,
     shopId: shopId,
     amount: amount,
-    type: type,
     note: note,
+  );
+
+  /// Create a repayment transaction
+  Future<String?> createRepayment({
+    required String creditId,
+    required String userId,
+    required String shopId,
+    required double amount,
+    String? note,
+    String paymentMethod = 'Cash',
+  }) => _writeService.createRepayment(
+    creditId: creditId,
+    userId: userId,
+    shopId: shopId,
+    amount: amount,
+    note: note,
+    paymentMethod: paymentMethod,
   );
 }

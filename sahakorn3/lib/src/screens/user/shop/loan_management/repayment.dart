@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sahakorn3/src/models/credit.dart';
+import 'package:sahakorn3/src/models/credit_transaction.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
+import 'package:sahakorn3/src/services/firebase/credit_transaction/credit_transaction_repository.dart';
 import 'package:sahakorn3/src/utils/custom_snackbar.dart';
-import '../../../../utils/formatters.dart';
+import 'package:sahakorn3/src/utils/formatters.dart';
 
 class RepaymentScreen extends StatefulWidget {
   const RepaymentScreen({super.key});
@@ -11,58 +17,21 @@ class RepaymentScreen extends StatefulWidget {
 
 class _RepaymentScreenState extends State<RepaymentScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final CreditRepository _creditRepo = CreditRepository();
+  final CreditTransactionRepository _transactionRepo =
+      CreditTransactionRepository();
 
-  // Mock Active Loans
-  final List<Map<String, dynamic>> _activeLoans = [
-    {
-      'id': 'L001',
-      'customerName': 'Somchai Jai-dee',
-      'totalAmount': 20000.0,
-      'paidAmount': 15000.0,
-      'remainingBalance': 5000.0,
-      'dueDate': '2024-05-30',
-      'avatarColor': Colors.blue,
-      'status': 'Active',
-    },
-    {
-      'id': 'L003',
-      'customerName': 'Mana Me-ngern',
-      'totalAmount': 50000.0,
-      'paidAmount': 37500.0,
-      'remainingBalance': 12500.0,
-      'dueDate': '2024-06-15',
-      'avatarColor': Colors.green,
-      'status': 'Good',
-    },
-    {
-      'id': 'L004',
-      'customerName': 'Manee Me-jai',
-      'totalAmount': 10000.0,
-      'paidAmount': 1000.0,
-      'remainingBalance': 9000.0,
-      'dueDate': '2024-05-25',
-      'avatarColor': Colors.orange,
-      'status': 'Overdue',
-    },
-    {
-      'id': 'L005',
-      'customerName': 'Piti Rak-thai',
-      'totalAmount': 30000.0,
-      'paidAmount': 0.0,
-      'remainingBalance': 30000.0,
-      'dueDate': '2024-05-10',
-      'avatarColor': Colors.purple,
-      'status': 'New',
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredLoans = [];
+  List<Credit> _allCredits = [];
+  List<Credit> _filteredCredits = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _filteredLoans = _activeLoans;
     _searchController.addListener(_onSearchChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchCredits();
+    });
   }
 
   @override
@@ -71,190 +40,330 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
     super.dispose();
   }
 
+  Future<void> _fetchCredits() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final credits = await _creditRepo.getCreditsByShop(shop.id);
+      // Filter only those with used credit > 0 (have debt)
+      final debtCredits =
+          credits.where((c) => c.creditUsed > 0 && c.creditUsed > 1).toList();
+
+      if (mounted) {
+        setState(() {
+          _allCredits = debtCredits;
+          _filteredCredits = debtCredits;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        AppSnackBar.showError(context, 'Failed to load credits: $e');
+      }
+    }
+  }
+
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      _filteredLoans =
-          _activeLoans.where((loan) {
-            final name = loan['customerName'].toLowerCase();
-            final id = loan['id'].toLowerCase();
+      _filteredCredits =
+          _allCredits.where((credit) {
+            final name = (credit.userName ?? '').toLowerCase();
+            final id = credit.id.toLowerCase();
             return name.contains(query) || id.contains(query);
           }).toList();
     });
   }
 
-  void _showRepaymentDialog(Map<String, dynamic> loan) {
+  void _showRepaymentDialog(Credit credit) {
     final TextEditingController amountController = TextEditingController();
-    final double remaining = loan['remainingBalance'];
+    final double remaining = credit.creditUsed;
+    String selectedPaymentMethod = 'Cash'; // Default
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder:
-          (context) => Container(
-            height: MediaQuery.of(context).size.height * 0.75,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
-            ),
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-              left: 24,
-              right: 24,
-              top: 24,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
+          (context) => StatefulBuilder(
+            builder: (context, setModalState) {
+              return Container(
+                height: MediaQuery.of(context).size.height * 0.85,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(25.0),
+                  ),
+                ),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Repay Loan',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[900],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Enter amount to repay for ${loan['customerName']}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 32),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(height: 24),
+                    Text(
+                      'Repay Loan',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[900],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'For customer: ${credit.userName ?? credit.id}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 32),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[50],
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey[200]!),
+                      ),
+                      child: Column(
                         children: [
-                          Text(
-                            'Remaining Balance',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                          Text(
-                            Formatters.formatBaht(remaining),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Remaining Balance',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                              Text(
+                                Formatters.formatBaht(remaining),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Amount',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: amountController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: InputDecoration(
-                    prefixText: '฿ ',
-                    hintText: '0.00',
-                    filled: true,
-                    fillColor: Colors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 16,
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Colors.indigo,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _buildQuickAmountChip(
-                      'Full Amount',
-                      remaining,
-                      amountController,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildQuickAmountChip(
-                      '50%',
-                      remaining / 2,
-                      amountController,
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // TODO: Process Repayment Logic
-                      Navigator.pop(context);
-                      AppSnackBar.showSuccess(
-                        context,
-                        'Repayment recorded successfully',
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.indigo,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Confirm Repayment',
+                    const SizedBox(height: 24),
+
+                    // Payment Method Selector
+                    Text(
+                      'Payment Method',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: selectedPaymentMethod,
+                          isExpanded: true,
+                          items:
+                              ['Cash', 'Transfer'].map((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        value == 'Cash'
+                                            ? Icons.money
+                                            : Icons.account_balance,
+                                        size: 20,
+                                        color: Colors.grey[700],
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(value),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
+                          onChanged: (newValue) {
+                            if (newValue != null) {
+                              setModalState(() {
+                                selectedPaymentMethod = newValue;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    Text(
+                      'Amount',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: amountController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: const TextStyle(
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
+                      decoration: InputDecoration(
+                        prefixText: '฿ ',
+                        hintText: '0.00',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 16,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(
+                            color: Colors.indigo,
+                            width: 2,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildQuickAmountChip(
+                          'Full Amount',
+                          remaining,
+                          amountController,
+                        ),
+                        const SizedBox(width: 8),
+                        _buildQuickAmountChip(
+                          '50%',
+                          remaining / 2,
+                          amountController,
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final amount =
+                              double.tryParse(
+                                amountController.text.replaceAll(',', ''),
+                              ) ??
+                              0.0;
+                          if (amount <= 0) {
+                            AppSnackBar.showError(
+                              context,
+                              'Please enter valid amount',
+                            );
+                            return;
+                          }
+                          if (amount > remaining) {
+                            AppSnackBar.showError(
+                              context,
+                              'Amount exceeds remaining balance',
+                            );
+                            return;
+                          }
+
+                          // Close modal first
+                          Navigator.pop(context);
+
+                          _processRepayment(
+                            credit,
+                            amount,
+                            selectedPaymentMethod,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.indigo,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Confirm Repayment',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              );
+            },
           ),
     );
+  }
+
+  Future<void> _processRepayment(
+    Credit credit,
+    double amount,
+    String paymentMethod,
+  ) async {
+    setState(() => _isLoading = true);
+    try {
+      final error = await _transactionRepo.createRepayment(
+        creditId: credit.id, // Assuming credit doc ID is key
+        userId: credit.id, // Credit Doc ID serves as User ID key in this schema
+        shopId: credit.shopId,
+        amount: amount,
+        note: 'Repayment via $paymentMethod',
+        paymentMethod: paymentMethod,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (error == null) {
+          AppSnackBar.showSuccess(context, 'Repayment recorded successfully');
+          _fetchCredits(); // Refresh list
+        } else {
+          AppSnackBar.showError(context, 'Error: $error');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        AppSnackBar.showError(context, 'Failed: $e');
+      }
+    }
   }
 
   Widget _buildQuickAmountChip(
@@ -292,15 +401,20 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
             _buildSearchBar(),
             const SizedBox(height: 24),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                itemCount: _filteredLoans.length,
-                separatorBuilder:
-                    (context, index) => const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  return _buildLoanCard(_filteredLoans[index]);
-                },
-              ),
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _filteredCredits.isEmpty
+                      ? const Center(child: Text('No active debts found'))
+                      : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        itemCount: _filteredCredits.length,
+                        separatorBuilder:
+                            (context, index) => const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          return _buildLoanCard(_filteredCredits[index]);
+                        },
+                      ),
             ),
           ],
         ),
@@ -371,7 +485,7 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
         child: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search customer or ID...',
+            hintText: 'Search customer...',
             hintStyle: TextStyle(color: Colors.grey[400]),
             prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
             suffixIcon:
@@ -393,22 +507,30 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
     );
   }
 
-  Widget _buildLoanCard(Map<String, dynamic> loan) {
-    final double total = loan['totalAmount'];
-    final double remaining = loan['remainingBalance'];
-    final double progress = (total > 0) ? (total - remaining) / total : 0.0;
+  Widget _buildLoanCard(Credit credit) {
+    final double total = credit.creditLimit; // Or should we use original?
+    // Note: Credit model structure uses creditLimit as Limit, creditUsed as Debt.
+    // It doesn't store "Original Loan Amount" explicitly unless we infer from Logs.
+    // But for Repayment UI, we mainly care about "Remaining Balance" (creditUsed).
+
+    final double remaining = credit.creditUsed;
+    final double progress =
+        (total > 0) ? ((total - remaining) / total) : 0.0; // Defines 'paid %'
 
     // Status Logic
     Color statusColor;
-    String statusText = loan['status'] ?? 'Active';
+    String statusText = credit.loanStatus;
 
-    if (statusText == 'Overdue') {
-      statusColor = Colors.red;
-    } else if (statusText == 'Good') {
-      statusColor = Colors.green;
-    } else {
+    if (statusText == 'Active') {
       statusColor = Colors.blue;
+    } else if (statusText == 'Overdue') {
+      statusColor = Colors.red;
+    } else {
+      statusColor = Colors.green;
     }
+
+    final name = credit.userName ?? 'Unknown';
+    final initial = name.isNotEmpty ? name[0] : '?';
 
     return Container(
       decoration: BoxDecoration(
@@ -430,11 +552,11 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: loan['avatarColor'].withOpacity(0.1),
+                  backgroundColor: statusColor.withOpacity(0.1),
                   child: Text(
-                    loan['customerName'][0],
+                    initial,
                     style: TextStyle(
-                      color: loan['avatarColor'],
+                      color: statusColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
                     ),
@@ -446,7 +568,7 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        loan['customerName'],
+                        name,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -455,7 +577,7 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'ID: ${loan['id']}',
+                        'ID: ${credit.id.substring(0, min(8, credit.id.length))}...',
                         style: TextStyle(
                           color: Colors.grey[500],
                           fontSize: 12,
@@ -493,7 +615,7 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Remaining',
+                      'Outstanding Debt',
                       style: TextStyle(color: Colors.grey[500], fontSize: 12),
                     ),
                     const SizedBox(height: 4),
@@ -507,54 +629,33 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
                     ),
                   ],
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Total Loan',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      Formatters.formatBaht(total),
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
             const SizedBox(height: 16),
-            Stack(
-              children: [
-                Container(
-                  height: 8,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: progress.clamp(0.0, 1.0),
-                  child: Container(
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-              ],
+            // Progress bar (Optional interpretation: Credit Used vs Limit)
+            // Or Debt vs Paid?
+            // Let's visualize "Credit Used" bar from Right to Left?
+            // Actually standard LinearProgressIndicator showing used ratio is fine.
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value:
+                    (credit.creditLimit > 0)
+                        ? (credit.creditUsed / credit.creditLimit).clamp(
+                          0.0,
+                          1.0,
+                        )
+                        : 0,
+                minHeight: 8,
+                color: Colors.orange, // Debt
+                backgroundColor: Colors.grey[100],
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => _showRepaymentDialog(loan),
+                onPressed: () => _showRepaymentDialog(credit),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.indigo,
                   foregroundColor: Colors.white,
@@ -575,4 +676,7 @@ class _RepaymentScreenState extends State<RepaymentScreen> {
       ),
     );
   }
+
+  // Helper for min
+  int min(int a, int b) => a < b ? a : b;
 }

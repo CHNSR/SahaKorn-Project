@@ -80,7 +80,7 @@ class Routes {
       helpSupport: (context) => const HelpSupportScreen(),
 
       // Loan Management
-      giveLoan: (context) => const GiveLoanScreen(),
+      giveLoan: (context) => const GiveLoanUserScreen(),
       customers: (context) => const CustomersScreen(),
       repayment: (context) => const RepaymentScreen(),
       history: (context) => const HistoryScreen(),

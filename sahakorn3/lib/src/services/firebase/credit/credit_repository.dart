@@ -31,6 +31,10 @@ class CreditRepository {
     required int loanTerm,
     required String loanStatus,
     String? userName,
+    String? gender,
+    int? age,
+    String? phoneNumber,
+    String? address,
   }) {
     return _writeService.createCredit(
       userId: userId,
@@ -41,6 +45,10 @@ class CreditRepository {
       loanTerm: loanTerm,
       loanStatus: loanStatus,
       userName: userName,
+      gender: gender,
+      age: age,
+      phoneNumber: phoneNumber,
+      address: address,
     );
   }
 

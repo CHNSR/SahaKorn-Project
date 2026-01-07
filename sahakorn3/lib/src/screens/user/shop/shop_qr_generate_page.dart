@@ -75,7 +75,7 @@ class _ShopQrGeneratePageState extends State<ShopQrGeneratePage> {
       transactionId: 'TX-${DateTime.now().millisecondsSinceEpoch}',
       shopId: shopId,
       userId: 'anonymous_walk_in', // Or real user ID if available
-      productId: 'mixed_cart', // Or specific product logic
+      category: 'mixed_cart', // Or specific product logic
       paymentMethod: _paymentMethod,
       totalAmount: _totalAmount,
       detail: itemDetail,

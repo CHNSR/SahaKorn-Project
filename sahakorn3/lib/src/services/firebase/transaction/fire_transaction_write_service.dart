@@ -13,7 +13,7 @@ class FireTransactionWriteService {
         'transaction_id': tx.transactionId,
         'shop_id': tx.shopId,
         'user_id': tx.userId,
-        'product_id': tx.productId,
+        'category': tx.category,
         'payment_method': tx.paymentMethod,
         'total_amount': tx.totalAmount,
         'detail': tx.detail,

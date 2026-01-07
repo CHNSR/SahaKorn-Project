@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../utils/formatters.dart';
 import 'package:intl/intl.dart';
+import 'package:sahakorn3/src/models/transaction.dart';
+import 'package:sahakorn3/src/models/transaction_query_type.dart';
+import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/services/firebase/transaction/transaction_repository.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -12,62 +17,18 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   String _selectedFilter = 'All';
   final TextEditingController _searchController = TextEditingController();
+  final TransactionRepository _transactionRepo = TransactionRepository();
 
-  // Mock History Data
-  final List<Map<String, dynamic>> _allHistory = [
-    {
-      'id': '1',
-      'date': '2024-04-20 14:30',
-      'action': 'Repayment',
-      'customer': 'Somchai Jai-dee',
-      'amount': 5000.0,
-      'isIncome': true,
-      'note': 'Cash payment',
-    },
-    {
-      'id': '2',
-      'date': '2024-04-18 10:15',
-      'action': 'Loan Given',
-      'customer': 'Manee Me-jai',
-      'amount': 10000.0,
-      'isIncome': false,
-      'note': 'Fertilizer purchase',
-    },
-    {
-      'id': '3',
-      'date': '2024-04-15 09:45',
-      'action': 'Loan Given',
-      'customer': 'Mana Me-ngern',
-      'amount': 50000.0,
-      'isIncome': false,
-      'note': 'Equipment loan',
-    },
-    {
-      'id': '4',
-      'date': '2024-04-10 16:20',
-      'action': 'Repayment',
-      'customer': 'Somsri Rak-ngern',
-      'amount': 2500.0,
-      'isIncome': true,
-      'note': 'Monthly installment',
-    },
-    {
-      'id': '5',
-      'date': '2024-04-05 11:00',
-      'action': 'Loan Given',
-      'customer': 'Piti Rak-thai',
-      'amount': 15000.0,
-      'isIncome': false,
-      'note': 'Seeds',
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredHistory = [];
+  List<AppTransaction> _allTransactions = [];
+  List<AppTransaction> _filteredTransactions = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _filterData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchHistory();
+    });
     _searchController.addListener(_filterData);
   }
 
@@ -77,31 +38,81 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.dispose();
   }
 
+  Future<void> _fetchHistory() async {
+    final shop = context.read<ShopProvider>().currentShop;
+    if (shop == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Fetch all transactions for the shop (with a reasonable limit for history)
+      final txns = await _transactionRepo.getByCatagoryOfUser(
+        catagory: TransactionQueryType.shop,
+        playload: shop.id,
+        limit: 500, // Fetch enough to filter
+      );
+
+      // Filter specifically for Loan-related events
+      final relevantTxns =
+          txns.where((t) {
+            // 1. Repayment (category == 'LOAN_REPAYMENT')
+            if (t.category == 'LOAN_REPAYMENT' || t.category == 'repayment')
+              return true; // keep legacy check for a moment if needed
+            // 2. Loan Given (paymentMethod == 'Loan')
+            if (t.paymentMethod == 'Loan') return true;
+            return false;
+          }).toList();
+
+      if (mounted) {
+        setState(() {
+          _allTransactions = relevantTxns;
+          _filteredTransactions = relevantTxns;
+          _isLoading = false;
+        });
+        _filterData(); // Apply initial filters if any
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        // show error?
+      }
+    }
+  }
+
   void _filterData() {
     final query = _searchController.text.toLowerCase();
 
     setState(() {
-      _filteredHistory =
-          _allHistory.where((item) {
-            // 1. Filter by Text
+      _filteredTransactions =
+          _allTransactions.where((item) {
+            // Determine type for filter
+            final isRepayment =
+                item.category == 'LOAN_REPAYMENT' ||
+                item.category == 'repayment';
+
+            // 1. Filter by Text (Search user ID or detail)
             final matchesSearch =
-                item['customer'].toLowerCase().contains(query) ||
-                item['action'].toLowerCase().contains(query);
+                item.userId.toLowerCase().contains(query) ||
+                (item.detail ?? '').toLowerCase().contains(query) ||
+                item.transactionId.toLowerCase().contains(query);
 
             // 2. Filter by Category
             bool matchesCategory = true;
             if (_selectedFilter == 'Loan') {
-              matchesCategory = !item['isIncome'];
+              matchesCategory = !isRepayment; // Show only Loans
             } else if (_selectedFilter == 'Repayment') {
-              matchesCategory = item['isIncome'];
+              matchesCategory = isRepayment; // Show only Repayments
             }
 
             return matchesSearch && matchesCategory;
           }).toList();
 
-      // Sort by date descending (mock date string comparison works for ISO-like, but better to parse)
-      // For simplicity here relying on list order or simple string compare if needed
-      _filteredHistory.sort((a, b) => b['date'].compareTo(a['date']));
+      // Sort by newest first
+      _filteredTransactions.sort((a, b) {
+        final dateA = a.createdAt ?? DateTime(2000);
+        final dateB = b.createdAt ?? DateTime(2000);
+        return dateB.compareTo(dateA);
+      });
     });
   }
 
@@ -118,18 +129,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(height: 16),
             Expanded(
               child:
-                  _filteredHistory.isEmpty
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _filteredTransactions.isEmpty
                       ? _buildEmptyState()
                       : ListView.separated(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
                           vertical: 10,
                         ),
-                        itemCount: _filteredHistory.length,
+                        itemCount: _filteredTransactions.length,
                         separatorBuilder:
                             (context, index) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          return _buildTransactionCard(_filteredHistory[index]);
+                          return _buildTransactionCard(
+                            _filteredTransactions[index],
+                          );
                         },
                       ),
             ),
@@ -155,7 +170,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               const SizedBox(width: 16),
               const Text(
-                'History',
+                'Loan History',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -204,7 +219,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search customer or action...',
+                hintText: 'Search User ID or Detail...',
                 hintStyle: TextStyle(color: Colors.grey[400]),
                 prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                 border: InputBorder.none,
@@ -271,9 +286,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildTransactionCard(Map<String, dynamic> item) {
-    final bool isIncome = item['isIncome'];
-    final DateTime date = DateTime.parse(item['date']); // simple parse for mock
+  Widget _buildTransactionCard(AppTransaction item) {
+    // Determine type
+    final bool isRepayment =
+        item.category == 'LOAN_REPAYMENT' || item.category == 'repayment';
+
+    // UI Props based on type
+    final String actionTitle = isRepayment ? 'Repayment' : 'Loan Given';
+    final bool isIncome =
+        isRepayment; // Repayment = Money In (Green), Loan = Money Out/Debt Up (Red-ish)
+    final DateTime date = item.createdAt ?? DateTime.now();
+
+    // For Loan Given, usually it's Credit Purchase, so it technically means "Sales", but in Debt context it increases debt.
+    // Let's stick to Green for Repayment (Good), Red/Orange for Loan (Debt).
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -296,14 +321,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
               color:
                   isIncome
                       ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      : Colors.orange.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isIncome
                   ? Icons.arrow_downward_rounded
                   : Icons.arrow_upward_rounded,
-              color: isIncome ? Colors.green[700] : Colors.red[700],
+              color: isIncome ? Colors.green[700] : Colors.orange[700],
               size: 24,
             ),
           ),
@@ -313,7 +338,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['action'],
+                  actionTitle,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -322,7 +347,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item['customer'],
+                  // Show User ID or fallback. Ideally fetch User Name.
+                  item.userId.length > 10
+                      ? 'User: ...${item.userId.substring(item.userId.length - 6)}'
+                      : 'User: ${item.userId}',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[700],
@@ -331,7 +359,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  DateFormat('MMM dd, yyyy • HH:mm').format(date),
+                  DateFormat('dd MMM yyyy • HH:mm').format(date),
                   style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                 ),
               ],
@@ -341,22 +369,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${isIncome ? '+' : '-'} ${Formatters.formatBaht(item['amount'], showSign: false)}',
+                '${isIncome ? '+' : '-'} ${Formatters.formatBaht(item.totalAmount, showSign: false)}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: isIncome ? Colors.green[700] : Colors.red[700],
+                  color: isIncome ? Colors.green[700] : Colors.orange[800],
                 ),
               ),
               const SizedBox(height: 4),
-              if (item['note'] != null)
+              if (item.detail != null && item.detail!.isNotEmpty)
                 Text(
-                  item['note'],
+                  item.detail!,
                   style: TextStyle(
                     fontSize: 11,
                     color: Colors.grey[400],
                     fontStyle: FontStyle.italic,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
             ],
           ),
@@ -370,10 +399,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history_toggle_off, size: 60, color: Colors.grey[300]),
+          Icon(Icons.manage_search, size: 60, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
-            'No transactions found',
+            'No loan history found',
             style: TextStyle(
               color: Colors.grey[500],
               fontSize: 16,

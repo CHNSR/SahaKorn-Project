@@ -5,7 +5,7 @@ class AppTransaction {
   final String transactionId;
   final String shopId; // Shop ID to link transaction to a shop
   final String userId;
-  final String productId;
+  final String category; // Renamed from productId to category
   final String paymentMethod;
   final double totalAmount;
   final String? detail;
@@ -17,7 +17,7 @@ class AppTransaction {
     required this.transactionId,
     required this.shopId,
     required this.userId,
-    required this.productId,
+    required this.category,
     required this.paymentMethod,
     required this.totalAmount,
     this.detail,
@@ -44,7 +44,11 @@ class AppTransaction {
       transactionId: data['transaction_id'] as String? ?? id,
       shopId: data['shop_id'] as String? ?? '',
       userId: data['user_id'] as String? ?? '',
-      productId: data['product_id'] as String? ?? '',
+      // Support both new 'category' and old 'product_id' for reading old data
+      category:
+          data['category'] as String? ??
+          data['product_id'] as String? ??
+          'General',
       paymentMethod: data['payment_method'] as String? ?? '',
       totalAmount:
           (data['total_amount'] is num)
@@ -63,7 +67,7 @@ class AppTransaction {
     'transaction_id': transactionId,
     'shop_id': shopId,
     'user_id': userId,
-    'product_id': productId,
+    'category': category, // New field name
     'payment_method': paymentMethod,
     'total_amount': totalAmount,
     'detail': detail,

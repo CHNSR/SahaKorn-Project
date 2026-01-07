@@ -11,6 +11,10 @@ class Credit {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? userName;
+  final String? gender;
+  final int? age;
+  final String? phoneNumber;
+  final String? address;
 
   Credit({
     required this.id,
@@ -23,6 +27,10 @@ class Credit {
     this.createdAt,
     this.updatedAt,
     this.userName,
+    this.gender,
+    this.age,
+    this.phoneNumber,
+    this.address,
   });
 
   factory Credit.fromMap(String id, Map<String, dynamic> map) {
@@ -30,7 +38,6 @@ class Credit {
       id: id,
       shopId: map['shopId'] ?? map['shopid'] ?? '',
       creditLimit: (map['creditLimit'] ?? 0.0).toDouble(),
-      // Fallback to 'amount' for backward compatibility
       creditUsed: (map['creditUsed'] ?? map['amount'] ?? 0.0).toDouble(),
       interest: (map['interest'] ?? 0.0).toDouble(),
       loanTerm: map['loanTerm'] ?? 0,
@@ -38,6 +45,10 @@ class Credit {
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
       userName: map['userName'],
+      gender: map['gender'],
+      age: map['age'],
+      phoneNumber: map['phoneNumber'],
+      address: map['address'],
     );
   }
 
@@ -51,6 +62,11 @@ class Credit {
       'loanStatus': loanStatus,
       'createdAt': createdAt,
       'updatedAt': updatedAt,
+      'userName': userName,
+      'gender': gender,
+      'age': age,
+      'phoneNumber': phoneNumber,
+      'address': address,
     };
   }
 }

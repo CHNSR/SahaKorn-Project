@@ -12,7 +12,11 @@ class FireCreditWriteService {
     required double interest,
     required int loanTerm,
     required String loanStatus,
-    String? userName, // Added userName
+    String? userName,
+    String? gender,
+    int? age,
+    String? phoneNumber,
+    String? address,
   }) async {
     try {
       final docRef = _firestore.collection(_collectionName).doc(userId);
@@ -26,7 +30,11 @@ class FireCreditWriteService {
         'loanTerm': loanTerm,
         'loanStatus': loanStatus,
         'updatedAt': FieldValue.serverTimestamp(),
-        'userName': userName, // Save userName
+        'userName': userName,
+        'gender': gender,
+        'age': age,
+        'phoneNumber': phoneNumber,
+        'address': address,
       });
       return null;
     } on FirebaseException catch (e) {

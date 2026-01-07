@@ -42,11 +42,14 @@ export 'package:sahakorn3/src/screens/user/shop/transaction/digital_recept.dart'
 export 'package:sahakorn3/src/screens/user/shop/transaction/export_transaction.dart';
 
 // Loan Management
-export 'package:sahakorn3/src/screens/user/shop/loan_management/giveloan.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/give_loan_user.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/customers.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/repayment.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/history.dart';
 export 'package:sahakorn3/src/screens/user/shop/loan_management/manage_total_credit.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/add_customer_choice.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/create_credit_account.dart';
+export 'package:sahakorn3/src/screens/user/shop/loan_management/qr_scanner_screen.dart';
 
 // Settings
 export 'package:sahakorn3/src/screens/user/shop/setting/changepassword/change_password.dart';

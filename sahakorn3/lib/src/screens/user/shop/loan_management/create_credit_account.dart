@@ -1,13 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
 import 'package:sahakorn3/src/services/firebase/credit/credit_repository.dart';
 import 'package:sahakorn3/src/utils/custom_snackbar.dart';
 
 class CreateCreditAccount extends StatefulWidget {
-  final String? scannedUserId; // Only present if scanned from QR
+  final String? scannedUserId;
 
   const CreateCreditAccount({super.key, required this.scannedUserId});
 
@@ -20,14 +21,18 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
 
   // Controllers
   final _nameController = TextEditingController();
-  final _creditLimitController = TextEditingController();
-  final _interestController =
-      TextEditingController(); // Assuming flat rate or percent?
-  final _loanTermController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _addressController = TextEditingController();
 
+  // Note: default credit limit 0 initially, or managed elsewhere?
+  // User asked to remove the field, so we default to 0.
+  final double _defaultCreditLimit = 0.0;
+
+  String? _selectedGender;
   bool _isLoading = false;
   late String _targetUserId;
-  late bool _isManual; // True if manual entry, False if App User
+  late bool _isManual;
 
   @override
   void initState() {
@@ -35,14 +40,11 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
     _isManual = widget.scannedUserId == null;
 
     if (_isManual) {
-      // Auto-generate ID for manual user
-      // Format: manual_timestamp_random
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final random = Random().nextInt(1000);
       _targetUserId = 'manual_${timestamp}_$random';
     } else {
       _targetUserId = widget.scannedUserId!;
-      // TODO: Fetch user name if possible, or leave blank/placeholder
       _nameController.text = 'App User';
     }
   }
@@ -50,9 +52,9 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
   @override
   void dispose() {
     _nameController.dispose();
-    _creditLimitController.dispose();
-    _interestController.dispose();
-    _loanTermController.dispose();
+    _ageController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -70,37 +72,28 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
     try {
       final creditRepo = CreditRepository();
 
-      // Prepare data
-      // For Manual user, we might want to store the "Name" somewhere associated with the Credit
-      // Current Credit model has 'userName' field, which fits perfectly.
-
       final error = await creditRepo.createCredit(
         userId: _targetUserId,
         shopId: shop.id,
-        creditLimit: double.parse(
-          _creditLimitController.text.replaceAll(',', ''),
-        ),
-        creditUsed: 0, // Start with 0 debt
-        interest: double.tryParse(_interestController.text) ?? 0,
-        loanTerm: int.tryParse(_loanTermController.text) ?? 12,
+        creditLimit: _defaultCreditLimit,
+        creditUsed: 0,
+        interest:
+            0, // Default interest 0? or needed? Assuming 0 for initial setup
+        loanTerm: 12, // Default 12 months?
         loanStatus: 'Active',
-      ); // Note: creditRepo createCredit currently doesn't accept userName field explicitly yet in parameters,
-      // but the Model has it. We might need to update Repository/WriteService to save Name if we want Manual names to persist.
-      // Wait, the previous task updated write service without adding userName param to the method signature explicitly?
-      // Let's check. If not, I should probably add it, or save it as a separate update?
-      // For now let's try to send basic info.
-
-      // Update logic: To save the name for manual users, we technically need to pass it.
-      // Assuming for now createCredit won't save name properly unless I updated it again.
-      // Just creates the structure first.
+        userName: _nameController.text,
+        gender: _selectedGender,
+        age: int.tryParse(_ageController.text),
+        phoneNumber: _phoneController.text,
+        address: _addressController.text,
+      );
 
       if (mounted) {
         setState(() => _isLoading = false);
         if (error == null) {
-          AppSnackBar.showSuccess(context, 'Credit account created!');
-          // Pop back to Customers Screen (2 pops: form -> choice -> customers)
-          Navigator.pop(context);
-          Navigator.pop(context);
+          AppSnackBar.showSuccess(context, 'Customer Profile Created!');
+          Navigator.pop(context); // Go back
+          Navigator.pop(context); // Go back to main list
         } else {
           AppSnackBar.showError(context, 'Error: $error');
         }
@@ -116,14 +109,11 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey[50], // Professional light grey background
       appBar: AppBar(
-        title: Text(
-          _isManual ? 'New Manual Customer' : 'New App Customer',
-          style: const TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-          ),
+        title: const Text(
+          'New Customer Profile',
+          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -134,21 +124,29 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // User Info Card
+              // User Identity Card
               Container(
-                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 24,
+                  horizontal: 16,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF185a9d), Color(0xFF43cea2)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: const Color(0xFF185a9d).withOpacity(0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -156,133 +154,172 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
                 ),
                 child: Column(
                   children: [
-                    Icon(
-                      _isManual ? Icons.person : Icons.phonelink_ring,
-                      size: 48,
-                      color: _isManual ? Colors.teal : Colors.indigo,
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(
+                        color: Colors.white24,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _isManual ? Icons.person_add : Icons.phonelink_ring,
+                        size: 40,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'User ID',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 14),
+                      _isManual ? 'Manual Entry' : 'Scanned User',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    const SizedBox(height: 4),
                     Text(
                       _targetUserId,
                       style: const TextStyle(
-                        fontSize: 14,
+                        color: Colors.white,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontFamily: 'Courier', // Monospace for ID
+                        fontFamily: 'Courier',
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              // Form Fields
-              _buildInputLabel('Customer Name'),
+              Text(
+                'Personal Information',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Name Field
+              _buildInputLabel('Full Name'),
               TextFormField(
                 controller: _nameController,
-                enabled: _isManual, // App users might have pre-filled names
-                decoration: _inputDecoration('Enter name'),
+                enabled: _isManual,
+                decoration: _buildInputDecoration(
+                  'Enter full name',
+                  Icons.person,
+                ),
                 validator: (v) => v!.isEmpty ? 'Name is required' : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              _buildInputLabel('Credit Limit (THB)'),
-              TextFormField(
-                controller: _creditLimitController,
-                keyboardType: TextInputType.number,
-                decoration: _inputDecoration('e.g. 50,000'),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Required';
-                  if (double.tryParse(v.replaceAll(',', '')) == null)
-                    return 'Invalid number';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
+              // Row 1: Gender & Age
               Row(
                 children: [
                   Expanded(
+                    flex: 3,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInputLabel('Interest (%)'),
-                        TextFormField(
-                          controller: _interestController,
-                          keyboardType: TextInputType.number,
-                          decoration: _inputDecoration('e.g. 5'),
+                        _buildInputLabel('Gender'),
+                        DropdownButtonFormField<String>(
+                          decoration: _buildInputDecoration('Select', Icons.wc),
+                          value: _selectedGender,
+                          items:
+                              ['Male', 'Female', 'Other']
+                                  .map(
+                                    (g) => DropdownMenuItem(
+                                      value: g,
+                                      child: Text(g),
+                                    ),
+                                  )
+                                  .toList(),
+                          onChanged:
+                              (val) => setState(() => _selectedGender = val),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
+                    flex: 2,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInputLabel('Term (Months)'),
+                        _buildInputLabel('Age'),
                         TextFormField(
-                          controller: _loanTermController,
+                          controller: _ageController,
                           keyboardType: TextInputType.number,
-                          decoration: _inputDecoration('e.g. 12'),
+                          decoration: _buildInputDecoration('Age', Icons.cake),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 20),
 
+              // Phone Number
+              _buildInputLabel('Phone Number'),
+              TextFormField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: _buildInputDecoration(
+                  '08X-XXX-XXXX',
+                  Icons.phone_android,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Address
+              _buildInputLabel('Current Address'),
+              TextFormField(
+                controller: _addressController,
+                maxLines: 3,
+                decoration: _buildInputDecoration(
+                  'House No., Street, City',
+                  Icons.location_on,
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Submit Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
+                    backgroundColor: const Color(0xFF185a9d),
                     foregroundColor: Colors.white,
+                    elevation: 8,
+                    shadowColor: const Color(0xFF185a9d).withOpacity(0.4),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    elevation: 5,
                   ),
                   child:
                       _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                            'Create Account',
+                            'Save Profile',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
                             ),
                           ),
                 ),
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }
 
@@ -296,6 +333,28 @@ class _CreateCreditAccountState extends State<CreateCreditAccount> {
           fontWeight: FontWeight.w600,
           color: Colors.grey[700],
         ),
+      ),
+    );
+  }
+
+  InputDecoration _buildInputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: Colors.grey[500], size: 22),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey[200]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey[200]!),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Color(0xFF185a9d), width: 1.5),
       ),
     );
   }
