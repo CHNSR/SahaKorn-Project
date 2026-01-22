@@ -32,6 +32,21 @@ class CreditTransactionRepository {
     note: note,
   );
 
+  /// Grant credit limit (increase limit, no debt change)
+  Future<String?> grantCreditLimit({
+    required String creditId,
+    required String userId,
+    required String shopId,
+    required double amount,
+    String? note,
+  }) => _writeService.grantCreditLimit(
+    creditId: creditId,
+    userId: userId,
+    shopId: shopId,
+    amount: amount,
+    note: note,
+  );
+
   /// Create a repayment transaction
   Future<String?> createRepayment({
     required String creditId,

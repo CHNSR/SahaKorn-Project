@@ -3,7 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum CreditTransactionType {
   purchase,
   repayment,
-  adjustment;
+  adjustment,
+  grant_limit; // New type
 
   String get name => toString().split('.').last;
 

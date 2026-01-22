@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sahakorn3/src/providers/shop_provider.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:intl/intl.dart';
-
-import 'package:sahakorn3/src/models/transaction_query_type.dart';
 
 class ShopTransaction extends StatefulWidget {
   const ShopTransaction({super.key});

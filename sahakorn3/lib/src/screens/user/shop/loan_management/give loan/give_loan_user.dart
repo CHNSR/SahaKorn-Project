@@ -82,12 +82,10 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
         return;
       }
 
-      final interest = double.tryParse(_interestController.text);
-
-      final note = 'Loan Given at ${interest ?? 0}% for $_termMonths months';
+      final note = 'Credit Limit Granted: ${amount.toStringAsFixed(0)} THB';
 
       try {
-        final error = await _transactionRepo.createPurchase(
+        final error = await _transactionRepo.grantCreditLimit(
           creditId: _selectedCustomerId!,
           userId: _selectedCustomerId!,
           shopId: shop.id,
@@ -97,7 +95,10 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
 
         if (error == null) {
           if (mounted) {
-            AppSnackBar.showSuccess(context, 'Loan Approved Successfully');
+            AppSnackBar.showSuccess(
+              context,
+              'Credit Limit Granted Successfully',
+            );
             Navigator.pop(context);
           }
         } else {
@@ -138,7 +139,7 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
-          'Give Loan',
+          'Grant Credit Limit',
           style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
@@ -404,7 +405,7 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
                           const SizedBox(height: 24),
 
                           // Amount
-                          _buildLabel('Loan Amount'),
+                          _buildLabel('Limit Amount'),
                           TextFormField(
                             controller: _amountController,
                             keyboardType: const TextInputType.numberWithOptions(
@@ -527,7 +528,7 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
                                         color: Colors.white,
                                       )
                                       : const Text(
-                                        'Approve Loan',
+                                        'Grant Limit',
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,

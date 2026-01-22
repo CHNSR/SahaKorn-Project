@@ -63,6 +63,57 @@ class FireCreditTransactionWriteService {
     }
   }
 
+  // 1.5 Transaction specifically for Granting Limit (Increase Limit, No Debt Change)
+  Future<String?> grantCreditLimit({
+    required String creditId,
+    required String userId,
+    required String shopId,
+    required double amount,
+    String? note,
+  }) async {
+    final transactionRef = _firestore.collection(_collectionName).doc();
+    final creditRef = _firestore
+        .collection(_creditCollectionName)
+        .doc(creditId);
+
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final creditDoc = await transaction.get(creditRef);
+        if (!creditDoc.exists) throw Exception('Credit account not found');
+
+        final currentCreditLimit =
+            (creditDoc.data()?['creditLimit'] ?? 0.0).toDouble();
+
+        // Increase Limit
+        final newCreditLimit = currentCreditLimit + amount;
+
+        final currentCreditUsed =
+            (creditDoc.data()?['creditUsed'] ?? 0.0).toDouble();
+
+        final newTransaction = CreditTransaction(
+          id: transactionRef.id,
+          creditId: creditId,
+          userId: userId,
+          shopId: shopId,
+          amount: amount,
+          type: CreditTransactionType.grant_limit,
+          remainingDebt: currentCreditUsed, // Debt unchanged
+          note: note,
+          createdAt: DateTime.now(),
+        );
+
+        transaction.set(transactionRef, newTransaction.toMap());
+        transaction.update(creditRef, {
+          'creditLimit': newCreditLimit,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+      return null;
+    } catch (e) {
+      return e.toString();
+    }
+  }
+
   // 2. Transaction specifically for Repayment
   Future<String?> createRepayment({
     required String creditId,
