@@ -63,10 +63,11 @@ class _ShopHomepageState extends State<ShopHomepage> {
 
     if (shop == null || userId == null) return;
 
-    final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
-    final overdue = await _creditRepo.countTotalAmountLoan(
+    final used = await _creditRepo.countTotalAmountDistributedCredit(
       shopId: shop.id,
-      status: 'overdue',
+    );
+    final overdue = await _creditRepo.countTotalAmountOverdueCredit(
+      shopId: shop.id,
     );
 
     final txns = await _transactionRepo.fetchForAnalytics(

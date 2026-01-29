@@ -12,8 +12,12 @@ class CreditRepository {
   Future<int?> countTotalLoan() => _readService.countTotalLoan();
 
   /// Calculate total amount of all loans
-  Future<double?> countTotalAmountLoan({String? shopId, String? status}) =>
-      _readService.countTotalAmountLoan(shopId: shopId, status: status);
+  Future<double?> countTotalAmountDistributedCredit({String? shopId}) =>
+      _readService.countTotalAmountDistributedCredit(shopId: shopId);
+
+  /// Calculate total amount of overdue loans
+  Future<double?> countTotalAmountOverdueCredit({String? shopId}) =>
+      _readService.countTotalAmountOverdueCredit(shopId: shopId);
 
   /// Get all credits for a shop
   Future<List<Credit>> getCreditsByShop(String shopId) =>
@@ -22,6 +26,10 @@ class CreditRepository {
   /// Get credit by ID
   Future<Credit?> getCreditById(String creditId) =>
       _readService.getCreditById(creditId);
+
+  /// Get credit by User ID
+  Future<Credit?> getCreditByUser(String userId) =>
+      _readService.getCreditByUserId(userId);
 
   // --- Write Methods ---
 

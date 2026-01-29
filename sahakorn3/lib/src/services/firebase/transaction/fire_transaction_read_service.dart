@@ -82,6 +82,33 @@ class FireTransactionReadService {
         .toList();
   }
 
+  // --- Customer Specific ---
+  Stream<List<AppTransaction>> watchByCustomer(String customerId) {
+    return _firestore
+        .collection(collectionName)
+        .where('user_id', isEqualTo: customerId)
+        .orderBy('created_at', descending: true)
+        .snapshots()
+        .map(
+          (snap) =>
+              snap.docs
+                  .map((d) => AppTransaction.fromMap(d.id, d.data()))
+                  .toList(),
+        );
+  }
+
+  Future<List<AppTransaction>> fetchAllByCustomer(String customerId) async {
+    final snap =
+        await _firestore
+            .collection(collectionName)
+            .where('user_id', isEqualTo: customerId)
+            .orderBy('created_at', descending: true)
+            .get();
+    return snap.docs
+        .map((d) => AppTransaction.fromMap(d.id, d.data()))
+        .toList();
+  }
+
   /// Calculates total balance and today's sales.
   /// Returns a Map with keys: 'totalBalance', 'todaySales'.
   Future<Map<String, double>> calculateStats({

@@ -52,6 +52,34 @@ class TransactionRepository {
   Future<List<AppTransaction>> listAll({int limit = 100}) =>
       _oldReadService.fetchAll(limit: limit);
 
+  // --- Customer Queries ---
+  Stream<List<AppTransaction>> watchTransactionsByCustomer(String customerId) {
+    return _oldReadService.watchByCustomer(customerId);
+  }
+
+  Future<double> fetchTotalUnpaidByCustomer(String customerId) async {
+    // Fetch all 'Unpaid' transactions for this customer
+    // We'll rely on oldReadService having a way to query by (userId, paymentMethod='Credit')
+    // For now, let's fetch all user transactions and filter in memory if needed
+    // or add a specific query in oldReadService.
+    // Assuming 'Credit' payment method implies debt.
+    final txs = await _oldReadService.fetchAllByCustomer(customerId);
+    // Filter for Credit AND (Unpaid status? - currently we don't have explicit status field in AppTransaction,
+    // usually Credit means it is a loan. Logic might need adjustment if we track repayment status).
+    // For now, assume ALL 'Credit' transactions are debts.
+    // TODO: Filter by 'Status' if added later.
+    final creditTxs = txs.where(
+      (t) => t.paymentMethod == 'Credit',
+    ); // && t.status != 'Paid'
+
+    // Sum total
+    double total = 0;
+    for (var t in creditTxs) {
+      total += t.totalAmount;
+    }
+    return total;
+  }
+
   // --- Write Operations ---
   Future<String?> create(AppTransaction tx) =>
       _writeService.createTransaction(tx: tx);

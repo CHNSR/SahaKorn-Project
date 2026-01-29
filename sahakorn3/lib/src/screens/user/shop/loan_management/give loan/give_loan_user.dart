@@ -16,7 +16,7 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
   final TextEditingController _amountController = TextEditingController();
   final TextEditingController _interestController = TextEditingController();
   DateTime _startDate = DateTime.now();
-  int _termMonths = 12;
+  int _termMonths = 12; //mock term month
   bool _isLoading = false;
   double _totalLoanAmount = 0.0;
 
@@ -29,17 +29,18 @@ class _GiveLoanUserScreenState extends State<GiveLoanUserScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchCustomers();
+    _fetchNewCustomers();
   }
 
-  Future<void> _fetchCustomers() async {
+  Future<void> _fetchNewCustomers() async {
     final shopId = context.read<ShopProvider>().currentShop?.id;
     if (shopId == null) return;
 
     try {
       final credits = await _creditRepo.getCreditsByShop(shopId);
       final totalLoan =
-          await _creditRepo.countTotalAmountLoan(shopId: shopId) ?? 0.0;
+          await _creditRepo.countTotalAmountDistributedCredit(shopId: shopId) ??
+          0.0;
 
       if (mounted) {
         setState(() {

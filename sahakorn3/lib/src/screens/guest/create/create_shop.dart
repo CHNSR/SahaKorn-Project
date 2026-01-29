@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sahakorn3/src/models/shop.dart';
 import 'package:sahakorn3/src/services/firebase/shop/fire_shop_write_service.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
-import 'package:sahakorn3/src/utils/custom_snackbar.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:sahakorn3/src/routes/exports.dart';
 
@@ -50,7 +49,28 @@ class _CreateShopScreenState extends State<CreateShopScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
-    final ownerId = context.read<UserInformationProvider?>()?.uid ?? '';
+    // Fix: Ensure we get a valid ownerId
+    final userProvider = context.read<UserInformationProvider>();
+    String ownerId = userProvider.uid ?? '';
+
+    // Fallback to FirebaseAuth direct check if provider hasn't loaded yet or returns null
+    if (ownerId.isEmpty) {
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser != null) {
+        ownerId = currentUser.uid;
+      }
+    }
+
+    if (ownerId.isEmpty) {
+      if (mounted) {
+        AppSnackBar.showError(
+          context,
+          'User not found. Please login properly.',
+        );
+      }
+      setState(() => _isLoading = false);
+      return;
+    }
 
     final shopData = {
       'name': _shopNameController.text.trim(),

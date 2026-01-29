@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
+import 'package:sahakorn3/src/screens/user/shop/setting/myqrcode/my_qr_code.dart';
+import 'package:sahakorn3/src/screens/user/customer/screens/search_shop.dart';
 
 class Routes {
   static const String root = '/';
@@ -20,6 +22,7 @@ class Routes {
   static const String customerCredit = '/customer_credit';
   static const String customerSetting = '/customer_setting';
   static const String customerPay = '/customer_pay';
+  static const String searchShop = '/search_shop';
 
   // Shop Routes
   static const String shopHome = '/shop_home';
@@ -35,6 +38,7 @@ class Routes {
   static const String changePassword = '/change_password';
   static const String switchShop = '/switch_shop';
   static const String helpSupport = '/help_support';
+  static const String myQrCode = '/my_qr_code';
 
   // Loan Management
   static const String giveLoan = '/give_loan';
@@ -66,11 +70,13 @@ class Routes {
       // Customer
       customerHome: (context) => const NavbarCustomer(),
       createCustomerProfile: (context) => const EditProfileScreen(),
+      searchShop: (context) => const SearchShopScreen(),
 
       // Shop
       shopHome: (context) => const NavbarShop(),
       createShop: (context) => const CreateShopScreen(),
       shopQrGenerate: (context) => const ShopQrGeneratePage(),
+      myQrCode: (context) => const MyQrCodeScreen(),
 
       // Shop Settings Layer 2
       editShopProfile: (context) => const EditShopProfileScreen(),
@@ -99,6 +105,13 @@ class Routes {
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case customerShop:
+        final shop = settings.arguments as Shop;
+        return MaterialPageRoute(
+          builder: (_) => CustomerShop(shop: shop),
+          settings: settings,
+        );
+
       case configTransaction:
         final transaction = settings.arguments as AppTransaction;
         return MaterialPageRoute(

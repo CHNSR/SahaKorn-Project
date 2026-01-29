@@ -66,6 +66,16 @@ class _ShopSettingpageState extends State<ShopSettingpage> {
                   ),
                   _buildDivider(),
                   _buildSettingItem(
+                    icon: Icons.qr_code,
+                    iconColor: Colors.teal,
+                    title: 'My QR Code',
+                    subtitle: 'Show to shop',
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.myQrCode);
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildSettingItem(
                     icon: Icons.store_mall_directory,
                     iconColor: Colors.indigo,
                     title: 'Create Shop',

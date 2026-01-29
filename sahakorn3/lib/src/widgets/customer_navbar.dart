@@ -5,6 +5,7 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sahakorn3/src/screens/user/customer/screens/search_shop.dart';
 
 class NavbarCustomer extends StatefulWidget {
   const NavbarCustomer({super.key});
@@ -168,7 +169,7 @@ class _NavbarCustomerState extends State<NavbarCustomer> {
           controller: controller,
           children: const [
             CustomerHome(),
-            CustomerShop(),
+            SearchShopScreen(),
             CustomerCredit(),
             CustomerSetting(),
           ],

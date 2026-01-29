@@ -261,7 +261,7 @@ class _TransactionHeatmapState extends State<TransactionHeatmap> {
     }
 
     return SizedBox(
-      height: 120, // fixed height for row
+      height: 150, // fixed height for row (increased to prevent overflow)
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: sortedYears.length,

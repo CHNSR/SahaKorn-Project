@@ -8,16 +8,23 @@ class ShopRepository {
   ShopRepository({
     FireShopReadService? readService,
     FireShopWriteService? writeService,
-  })  : readService = readService ?? FireShopReadService(),
-        writeService = writeService ?? FireShopWriteService();
+  }) : readService = readService ?? FireShopReadService(),
+       writeService = writeService ?? FireShopWriteService();
 
   // Read APIs
-  Future<List<Shop>> getShopsByOwner(String ownerId) => readService.fetchShopsByOwner(ownerId);
-  Future<int?> countShops(String ownerId) => readService.countShopsByOwner(ownerId);
-  Stream<List<Shop>> watchShops(String ownerId) => readService.watchShopsByOwner(ownerId);
+  Future<List<Shop>> getShopsByOwner(String ownerId) =>
+      readService.fetchShopsByOwner(ownerId);
+  Future<int?> countShops(String ownerId) =>
+      readService.countShopsByOwner(ownerId);
+  Stream<List<Shop>> watchShops(String ownerId) =>
+      readService.watchShopsByOwner(ownerId);
+  Future<Shop?> getShopById(String shopId) => readService.getShopById(shopId);
+  Future<List<Shop>> searchShops(String query) =>
+      readService.searchShops(query);
 
   // Write APIs
   Future<String?> createShop(Shop shop) => writeService.createShop(shop);
-  Future<void> updateShop(String shopId, Map<String, dynamic> data) => writeService.updateShop(shopId, data);
+  Future<void> updateShop(String shopId, Map<String, dynamic> data) =>
+      writeService.updateShop(shopId, data);
   Future<void> deleteShop(String shopId) => writeService.deleteShop(shopId);
 }

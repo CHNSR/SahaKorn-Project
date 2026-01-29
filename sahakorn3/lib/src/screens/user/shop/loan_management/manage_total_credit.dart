@@ -32,7 +32,9 @@ class _ManageTotalCreditState extends State<ManageTotalCredit> {
     final shop = context.read<ShopProvider>().currentShop;
     if (shop != null) {
       setState(() => _isLoading = true);
-      final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
+      final used = await _creditRepo.countTotalAmountDistributedCredit(
+        shopId: shop.id,
+      );
       if (mounted) {
         setState(() {
           _usedCredit = used ?? 0.0;
@@ -220,7 +222,7 @@ class _ManageTotalCreditState extends State<ManageTotalCredit> {
                       const SizedBox(width: 40),
                       _buildLegendItem(
                         color: const Color(0xFFff5252), // Soft Red
-                        label: 'Used',
+                        label: 'Distributed',
                         value: _usedCredit,
                       ),
                     ],

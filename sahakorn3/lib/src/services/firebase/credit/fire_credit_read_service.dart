@@ -17,8 +17,8 @@ class FireCreditReadService {
     }
   }
 
-  // count total amount loan
-  Future<double?> countTotalAmountLoan({String? shopId, String? status}) async {
+  // count total amount distributed credit
+  Future<double?> countTotalAmountDistributedCredit({String? shopId}) async {
     try {
       final collection = _firestore.collection(_collectionName);
       Query query = collection;
@@ -34,15 +34,31 @@ class FireCreditReadService {
         // For simplicity and performance, query 'shopId'.
         query = query.where('shopId', isEqualTo: shopId);
       }
+      query = query.where('loanStatus', isEqualTo: 'Active');
 
-      if (status != null && status.isNotEmpty) {
-        query = query.where('loanStatus', isEqualTo: status);
-      }
-
-      final snapshot = await query.aggregate(sum('creditUsed')).get();
-      return snapshot.getSum('creditUsed');
+      final snapshot = await query.aggregate(sum('creditLimit')).get();
+      return snapshot.getSum('creditLimit');
     } catch (e) {
       print('Error summing loan amounts: $e');
+      return 0.0;
+    }
+  }
+
+  // count total amount overdue credit
+  Future<double?> countTotalAmountOverdueCredit({String? shopId}) async {
+    try {
+      final collection = _firestore.collection(_collectionName);
+      Query query = collection;
+
+      if (shopId != null && shopId.isNotEmpty) {
+        query = query.where('shopId', isEqualTo: shopId);
+      }
+      query = query.where('loanStatus', isEqualTo: 'overdue');
+
+      final snapshot = await query.aggregate(sum('creditLimit')).get();
+      return snapshot.getSum('creditLimit');
+    } catch (e) {
+      print('Error summing overdue amounts: $e');
       return 0.0;
     }
   }
@@ -95,5 +111,10 @@ class FireCreditReadService {
       print('Error fetching credit by ID: $e');
       return null;
     }
+  }
+
+  // get credit by userId (Same as ById because docId is userId in current design)
+  Future<Credit?> getCreditByUserId(String userId) async {
+    return getCreditById(userId);
   }
 }

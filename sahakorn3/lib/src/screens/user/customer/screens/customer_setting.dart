@@ -56,6 +56,16 @@ class _CustomerSettingState extends State<CustomerSetting> {
                   ),
                   _buildDivider(),
                   _buildSettingItem(
+                    icon: Icons.qr_code,
+                    iconColor: Colors.teal,
+                    title: 'My QR Code',
+                    subtitle: 'Show to shop',
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.myQrCode);
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildSettingItem(
                     icon: Icons.payment,
                     iconColor: Colors.green,
                     title: 'Payment Methods',

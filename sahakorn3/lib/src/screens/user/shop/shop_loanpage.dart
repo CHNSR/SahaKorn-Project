@@ -35,7 +35,9 @@ class _ShopCreditState extends State<ShopCredit> {
       // setState(() => _isLoading = true);
 
       try {
-        final used = await _creditRepo.countTotalAmountLoan(shopId: shop.id);
+        final used = await _creditRepo.countTotalAmountDistributedCredit(
+          shopId: shop.id,
+        );
         final txns = await _transactionRepo.getByCatagoryOfUser(
           catagory: TransactionQueryType.shop,
           playload: shop.id,
@@ -251,7 +253,7 @@ class _ShopCreditState extends State<ShopCredit> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Used',
+                      'Distributed',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.7),
                         fontSize: 12,
