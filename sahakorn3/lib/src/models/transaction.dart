@@ -11,6 +11,7 @@ class AppTransaction {
   final String? detail;
   final DateTime? createdAt;
   final List<Map<String, dynamic>>? editHistory;
+  final String status; // 'pending', 'completed', 'cancelled'
 
   AppTransaction({
     this.docId,
@@ -23,6 +24,7 @@ class AppTransaction {
     this.detail,
     this.createdAt,
     this.editHistory,
+    this.status = 'completed', // Default for old records
   });
 
   factory AppTransaction.fromMap(String id, Map<String, dynamic>? data) {
@@ -60,6 +62,7 @@ class AppTransaction {
           (data['edit_history'] as List<dynamic>?)
               ?.map((e) => Map<String, dynamic>.from(e as Map))
               .toList(),
+      status: data['status'] as String? ?? 'completed',
     );
   }
 
@@ -76,6 +79,7 @@ class AppTransaction {
             ? _timestampFromDate(createdAt!)
             : FieldValue.serverTimestamp(),
     'edit_history': editHistory,
+    'status': status,
   };
 
   // helper for serializing DateTime to a map-like timestamp if needed

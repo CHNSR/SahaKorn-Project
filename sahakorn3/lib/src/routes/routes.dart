@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:sahakorn3/src/screens/user/shop/setting/myqrcode/my_qr_code.dart';
 import 'package:sahakorn3/src/screens/user/customer/screens/search_shop.dart';
+import 'package:sahakorn3/src/screens/user/customer/screens/customer_pay.dart';
 
 class Routes {
   static const String root = '/';
@@ -71,6 +72,7 @@ class Routes {
       customerHome: (context) => const NavbarCustomer(),
       createCustomerProfile: (context) => const EditProfileScreen(),
       searchShop: (context) => const SearchShopScreen(),
+      customerPay: (context) => const CustomerPay(),
 
       // Shop
       shopHome: (context) => const NavbarShop(),
