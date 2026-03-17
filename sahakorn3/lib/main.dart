@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sahakorn3/firebase_options.dart';
 import 'package:sahakorn3/src/providers/user_infomation.dart';
 import 'package:sahakorn3/src/providers/theme_provider.dart';
 import 'package:sahakorn3/src/providers/shop_provider.dart';
+import 'package:sahakorn3/src/blocs/shop/shop_bloc.dart';
 import 'package:sahakorn3/src/routes/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
-    MultiProvider(
+    MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => UserInformationProvider()),
-        ChangeNotifierProvider(create: (_) => ShopProvider()),
+        BlocProvider(create: (_) => ShopBloc()),
       ],
-      child: const MyApp(),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => UserInformationProvider()),
+          ChangeNotifierProvider(create: (_) => ShopProvider()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }

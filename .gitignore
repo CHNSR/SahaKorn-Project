@@ -79,3 +79,6 @@ Thumbs.db
 # Ignore environment files
 .env
 .env.*
+
+# FVM Version Cache
+.fvm/

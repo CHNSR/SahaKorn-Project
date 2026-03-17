@@ -6,99 +6,71 @@ import 'package:sahakorn3/src/screens/user/shop/widgets/loan_usage_chart.dart';
 import 'package:sahakorn3/src/routes/exports.dart';
 import 'package:sahakorn3/src/utils/formatters.dart';
 
-class ShopCredit extends StatefulWidget {
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/shop_credit_bloc.dart';
+import 'bloc/shop_credit_event.dart';
+import 'bloc/shop_credit_state.dart';
+
+class ShopCredit extends StatelessWidget {
   const ShopCredit({super.key});
-
-  @override
-  State<ShopCredit> createState() => _ShopCreditState();
-}
-
-class _ShopCreditState extends State<ShopCredit> {
-  final CreditRepository _creditRepo = CreditRepository();
-  final TransactionRepository _transactionRepo = TransactionRepository();
-  List<AppTransaction> _transactions = [];
-  double _usedCredit = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData();
-    });
-  }
-
-  Future<void> _fetchData() async {
-    final shop = context.read<ShopProvider>().currentShop;
-    if (shop != null) {
-      if (!mounted) return;
-      // You could set loading true here if you want a spinner effect every time
-      // setState(() => _isLoading = true);
-
-      try {
-        final used = await _creditRepo.countTotalAmountDistributedCredit(
-          shopId: shop.id,
-        );
-        final txns = await _transactionRepo.getByCatagoryOfUser(
-          catagory: TransactionQueryType.shop,
-          playload: shop.id,
-          limit: 1000,
-        );
-
-        if (mounted) {
-          setState(() {
-            _usedCredit = used ?? 0.0;
-            _transactions = txns;
-          });
-        }
-      } catch (e) {
-        debugPrint('Error fetching data: $e');
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final shop = context.watch<ShopProvider>().currentShop;
 
-    // If shop is not loaded yet, show loading (optional, or handle gracefully)
     if (shop == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final double creditLimit = shop.creditLimit;
-    final double currentBalance = _usedCredit;
+    return BlocProvider(
+      create: (context) => ShopCreditBloc(
+        creditRepo: CreditRepository(),
+        transactionRepo: TransactionRepository(),
+      )..add(LoadShopCreditData(shop.id)),
+      child: Scaffold(
+        backgroundColor: Colors.grey[50], // Professional light grey bg
+        body: SafeArea(
+          child: BlocBuilder<ShopCreditBloc, ShopCreditState>(
+            builder: (context, state) {
+              if (state is ShopCreditLoading || state is ShopCreditInitial) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (state is ShopCreditError) {
+                return Center(child: Text('Error: ${state.message}'));
+              } else if (state is ShopCreditLoaded) {
+                final double creditLimit = shop.creditLimit;
+                final double currentBalance = state.usedCredit;
 
-    double available = creditLimit - currentBalance;
-    if (available < 0) available = 0;
+                double available = creditLimit - currentBalance;
+                if (available < 0) available = 0;
 
-    final double usedRatio =
-        (creditLimit > 0)
-            ? (currentBalance / creditLimit).clamp(0.0, 1.0)
-            : 0.0;
+                final double usedRatio = (creditLimit > 0)
+                    ? (currentBalance / creditLimit).clamp(0.0, 1.0)
+                    : 0.0;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50], // Professional light grey bg
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildCreditSummaryCard(creditLimit, available, usedRatio),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Management'),
-              _buildActionGrid(),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Analytics'),
-              const SizedBox(height: 10),
-              const SizedBox(height: 10),
-              LoanUsageChart(transactions: _transactions),
-              const SizedBox(height: 24),
-              _buildSectionTitle('Deptor'),
-              const SizedBox(height: 40),
-            ],
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      _buildCreditSummaryCard(context, creditLimit, available, usedRatio, shop.id),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Management'),
+                      _buildActionGrid(context),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Analytics'),
+                      const SizedBox(height: 10),
+                      LoanUsageChart(transactions: state.transactions),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Deptor'),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
         ),
       ),
@@ -150,15 +122,18 @@ class _ShopCreditState extends State<ShopCredit> {
   }
 
   Widget _buildCreditSummaryCard(
+    BuildContext context,
     double creditLimit,
     double available,
     double usedRatio,
+    String shopId,
   ) {
     return GestureDetector(
       onTap: () async {
         await Navigator.pushNamed(context, Routes.manageTotalCredit);
-        // Refresh data when returning from management screen
-        _fetchData();
+        if (context.mounted) {
+          context.read<ShopCreditBloc>().add(LoadShopCreditData(shopId));
+        }
       },
       child: Container(
         width: double.infinity,
@@ -287,7 +262,7 @@ class _ShopCreditState extends State<ShopCredit> {
     );
   }
 
-  Widget _buildActionGrid() {
+  Widget _buildActionGrid(BuildContext context) {
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -371,27 +346,4 @@ class _ShopCreditState extends State<ShopCredit> {
     );
   }
 
-  Widget _buildChartSection() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          LoanUsageChart(transactions: _transactions),
-        ],
-      ),
-    );
-  }
 }
